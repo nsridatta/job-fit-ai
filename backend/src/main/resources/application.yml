@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: resume-ai-backend
+  ai:
+    openai:
+      api-key: ${OPENROUTER_API_KEY}  # Your OpenRouter API key
+      base-url: https://openrouter.ai/api/v1  # OpenRouter endpoint
+      chat:
+        options:
+          model: nvidia/nemotron-nano-9b-v2:free
+    # ollama:
+    #   chat:
+    #     options:
+    #       model: hf.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-7B
+    #   base-url: http://localhost:11434
+        
+    # huggingface:
+    #   chat:
+    #     api-key: ${HF_API_KEY}
+    #     url: https://api-inference.huggingface.co/models/HuggingFaceTB/SmolLM3-3B
+    # openai:
+    #   api-key: ${OPENAI_API_KEY}
+    #   base-url: https://api.openai.com/
+    retry:
+      max-attempts: 3
+      initial-interval: 2000ms
+      multiplier: 2.0
+      max-interval: 1000ms
+
+server:
+  port: 8082
+
+logging:
+  level:
+    root: INFO
+
+resume:
+  local:
+    enabled: true
+    model-path: models/flan-t5-small
