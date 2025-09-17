@@ -1,4 +1,4 @@
-// Connects frontend -> backend APIs on port 8082
+// Connects frontend -> backend APIs on port 8082 for dev
 
 export async function analyzeResume(formData: FormData) {
   const res = await fetch("/api/analyze/jobfit", {

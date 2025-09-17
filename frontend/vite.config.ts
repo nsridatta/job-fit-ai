@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:8082",
+        target: "https://job-fit-ai-backend-jrp1.onrender.com",
         changeOrigin: true
       }
     }
