@@ -1,6 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 import Results from "./pages/Results";
 
 export default function App() {
@@ -8,9 +7,10 @@ export default function App() {
     <div className="centered-container">
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
+          {/* <Route path="/" element={<Login />} /> */}        
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/results" element={<Results />} />
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </div>
