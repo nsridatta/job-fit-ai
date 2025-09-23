@@ -3,7 +3,7 @@ Job Fit - Free AI-Powered Resume Analyzer | Optimize Your Job Application
 
 What's included
 - frontend/: Vite + React (TypeScript) minimal app with file upload & paste-to-analyze UI.
-- backend/: Spring Boot app with a simple heuristic-based analyzer and /api endpoints.
+- backend/: Spring Boot app with a simple heuristic-based AI analyzer and /api endpoints.
 
 Quick start (frontend)
 1. cd frontend
