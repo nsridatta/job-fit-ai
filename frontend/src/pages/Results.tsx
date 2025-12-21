@@ -289,7 +289,7 @@ const Results: React.FC = () => {
             <PiMagicWandDuotone className="text-primary w-5 h-5" />
             <span className="text-lg font-bold text-slate-900">JobFit AI</span>
           </div>
-          <p className="text-xs text-slate-400">© 2024 JobFit AI. Your data is never stored.</p>
+          <p className="text-xs text-slate-400">© 2025 JobFit AI. Your data is never stored.</p>
         </div>
       </footer>
     </div>
