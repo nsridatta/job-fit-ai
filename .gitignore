@@ -1,7 +1,7 @@
 # Backend (Java/Spring)
 backend/target/
 backend/.gradle/
-backend/.env
+backend/.env*
 backend/*.log
 
 # Frontend (React/Node)

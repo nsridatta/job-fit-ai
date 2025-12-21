@@ -3,8 +3,8 @@ spring:
     name: resume-ai-backend
   ai:
     openai:
-      api-key: ${OPENROUTER_API_KEY}  # Your OpenRouter API key
-      base-url: https://openrouter.ai/api/v1  # OpenRouter endpoint
+      api-key: ${OPENROUTER_API_KEY}  # This will be loaded from .env file
+      base-url: https://openrouter.ai/api/v1
       chat:
         options:
           model: nvidia/nemotron-3-nano-30b-a3b:free
