@@ -1,6 +1,6 @@
 // src/components/FileUpload.tsx
-import { Upload } from "lucide-react";
-import React, { useRef } from "react";
+import { PiCloudArrowUpDuotone, PiShieldCheckDuotone } from "react-icons/pi";
+import React, { useRef, useState } from "react";
 import { Input } from "./ui/Input";
 
 interface FileUploadProps {
@@ -9,6 +9,7 @@ interface FileUploadProps {
 
 const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -20,6 +21,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragOver(false);
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       onFileSelect(e.dataTransfer.files[0]);
     }
@@ -27,29 +29,53 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragOver(false);
   };
 
   return (
-    <div>
-      <div 
-        className="border-2 border-dashed border-gray-300 rounded-2xl p-6 text-center cursor-pointer transition hover:border-blue-400 hover:bg-blue-50"
+    <div className="w-full">
+      <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onClick={() => fileInputRef.current?.click()}
+        onDragLeave={handleDragLeave}
+        className={`
+          relative border-2 border-dashed rounded-[2rem] p-10 text-center transition-all duration-300
+          ${isDragOver
+            ? 'border-primary bg-primary/5 scale-[0.99]'
+            : 'border-slate-200 hover:border-primary/50 bg-white hover:bg-slate-50/50'
+          }
+        `}
       >
-        <div className="flex flex-col items-center justify-center gap-2">
-          <Upload size={32} className="text-gray-400" />
-          <p className="text-gray-600">
-            Drag & drop your resume here or{" "}
-            <span className="text-blue-600 font-medium">browse files</span>
-          </p>
-          <p className="text-sm text-gray-500 mt-1">
-            Supports PDF, DOC, and DOCX files
+        <div className="flex flex-col items-center justify-center gap-6">
+          <div className="space-y-2">
+            <p className="text-slate-600 font-medium text-base">
+              Drop your resume here or choose a file.
+            </p>
+            <p className="text-slate-400 text-xs font-medium uppercase tracking-tight">
+              PDF & DOCX only. Max 5MB file size.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="px-8 py-3.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-95"
+          >
+            Upload Your Resume
+          </button>
+
+          <p className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <PiShieldCheckDuotone className="w-3.5 h-3.5 text-slate-400" />
+            Privacy guaranteed
           </p>
         </div>
       </div>
-      
-      <Input
+
+      <input
         id="resume-upload"
         type="file"
         accept=".pdf,.doc,.docx"

@@ -2,8 +2,30 @@
 backend/target/
 backend/.gradle/
 backend/.env
+backend/*.log
 
 # Frontend (React/Node)
 frontend/node_modules/
 frontend/build/
 frontend/.env
+frontend/dist/
+frontend/*.log
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Misc
+structure.txt
+*.log
+.env
+.env.local
+.env.*.local

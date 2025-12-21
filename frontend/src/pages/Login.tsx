@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
