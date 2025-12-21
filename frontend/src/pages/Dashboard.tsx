@@ -122,10 +122,10 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Resume Tips</a>
-            <a href="#" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">How it works</a>
-            <Button variant="secondary" size="sm">Sign In</Button>
-            <Button size="sm" className="bg-primary hover:bg-primary-dark">Get Started</Button>
+            <a href="/blog/resume-keywords-2025" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Resume Tips</a>
+            <a href="/blog/how-jobfit-ai-works" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">How it works</a>
+            {/* <Button variant="secondary" size="sm">Sign In</Button>
+            <Button size="sm" className="bg-primary hover:bg-primary-dark">Get Started</Button> */}
           </div>
         </div>
       </nav>
@@ -294,10 +294,10 @@ const Dashboard: React.FC = () => {
             <span className="text-lg font-bold text-slate-900">JobFit AI</span>
           </div>
           <div className="flex gap-10 text-sm font-medium text-slate-500">
-            <a href="#" className="hover:text-primary">Privacy</a>
-            <a href="#" className="hover:text-primary">Terms</a>
-            <a href="#" className="hover:text-primary">Blog</a>
-            <a href="#" className="hover:text-primary">Contact</a>
+            <a href="/privacy" className="hover:text-primary">Privacy</a>
+            <a href="/terms" className="hover:text-primary">Terms</a>
+            <a href="/blog" className="hover:text-primary">Blog</a>
+            <a href="/contact" className="hover:text-primary">Contact</a>
           </div>
           <p className="text-xs text-slate-400">© 2025 JobFit AI. All rights reserved.</p>
         </div>
