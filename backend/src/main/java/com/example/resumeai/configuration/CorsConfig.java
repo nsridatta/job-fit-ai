@@ -14,9 +14,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
                         .allowedOrigins(
-                            "https://job-fit-ai-coral.vercel.app", // Your Vercel URL
-                            "http://localhost:5173" // Local development
-                        )
+                                "https://job-fit-ai-coral.vercel.app",
+                                "https://aijobfit.vercel.app", // Your Vercel URL
+                                "http://localhost:5173" // Local development
+                )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);

@@ -11,7 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.4-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3.4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 
-[Live Demo](https://job-fit-ai-coral.vercel.app) • [Report Bug](https://github.com/nsridatta/job-fit-ai/issues) • [Request Feature](https://github.com/nsridatta/job-fit-ai/issues)
+[Live Demo](https://aijobfit.vercel.app) • [Report Bug](https://github.com/nsridatta/job-fit-ai/issues) • [Request Feature](https://github.com/nsridatta/job-fit-ai/issues)
 
 </div>
 

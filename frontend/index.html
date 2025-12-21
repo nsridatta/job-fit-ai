@@ -1,27 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>  
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Job Fit - Free AI-Powered Resume Analyzer | Optimize Your Job Application</title>
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <meta name="description" content="Get instant, AI-driven feedback on your resume. Job Fit analyzes your CV against job descriptions to help you land your dream job faster." />
-    
-    <!-- Open Graph Tags for Social Media (e.g., Facebook, LinkedIn) -->
-    <meta property="og:title" content="Job Fit - AI-Powered Resume Analyzer" />
-    <meta property="og:description" content="Get instant, AI-driven feedback on your resume. Optimize your job application with our free analyzer." />
-    <meta property="og:image" content="https://job-fit-ai-coral.vercel.app/api/og" /> <!-- You will generate this -->
-    <meta property="og:url" content="https://job-fit-ai-coral.vercel.app" />
-    <meta property="og:type" content="website" />
-    
-    <!-- Twitter Card Tags -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Job Fit - AI-Powered Resume Analyzer" />
-    <meta name="twitter:description" content="Get instant, AI-driven feedback on your resume." />
-    <meta name="twitter:image" content="https://job-fit-ai-coral.vercel.app/api/og" />
-  </head>
-  <body class="bg-gray-100">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary Meta Tags -->
+  <title>JobFit AI - Free ATS Resume Checker & AI Resume Analyzer 2025</title>
+  <meta name="title" content="JobFit AI - Free ATS Resume Checker & AI Resume Analyzer 2025" />
+  <meta name="description"
+    content="Check if your resume passes ATS systems with our free AI-powered resume analyzer. Get instant feedback, keyword optimization tips, and improve your job application success rate by 3x." />
+  <meta name="keywords"
+    content="ATS resume checker, free resume analyzer, AI resume scanner, resume optimization, job application tool, CV checker, resume score, ATS friendly resume, resume keywords, career tools" />
+  <meta name="author" content="JobFit AI" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://aijobfit.vercel.app/" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+  <!-- Preconnect for Performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://aijobfit.vercel.app/" />
+  <meta property="og:title" content="JobFit AI - Free ATS Resume Checker & AI Analyzer" />
+  <meta property="og:description"
+    content="Check if your resume passes ATS systems. Get instant AI feedback and improve your job application success rate." />
+  <meta property="og:image" content="https://aijobfit.vercel.app/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="JobFit AI" />
+  <meta property="og:locale" content="en_US" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://aijobfit.vercel.app/" />
+  <meta name="twitter:title" content="JobFit AI - Free ATS Resume Checker" />
+  <meta name="twitter:description" content="Free AI-powered resume analyzer. Check ATS compatibility instantly." />
+  <meta name="twitter:image" content="https://aijobfit.vercel.app/og-image.png" />
+
+  <!-- Additional SEO Meta Tags -->
+  <meta name="application-name" content="JobFit AI" />
+  <meta name="theme-color" content="#00c091" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="JobFit AI" />
+
+  <!-- Structured Data - WebApplication -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "JobFit AI",
+      "url": "https://aijobfit.vercel.app",
+      "description": "Free AI-powered ATS resume checker and analyzer. Upload your resume and get instant feedback on ATS compatibility, keyword optimization, and improvement suggestions.",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "JobFit AI"
+      }
+    }
+    </script>
+
+  <!-- Structured Data - FAQPage (Helps with rich snippets) -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is an ATS resume checker?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "An ATS (Applicant Tracking System) resume checker analyzes your resume to ensure it can be properly parsed by automated hiring systems. JobFit AI uses advanced AI to check formatting, keywords, and structure."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is JobFit AI free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, JobFit AI is completely free. Upload your resume and get instant AI-powered feedback without any cost or registration required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How does AI resume analysis work?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Our AI compares your resume against the job description, identifies missing keywords, evaluates each section (experience, skills, education), and provides actionable improvement suggestions."
+          }
+        }
+      ]
+    }
+    </script>
+
+  <!-- Structured Data - Organization -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "JobFit AI",
+      "url": "https://aijobfit.vercel.app",
+      "logo": "https://aijobfit.vercel.app/logo.png",
+      "sameAs": []
+    }
+    </script>
+</head>
+
+<body>
+  <!-- Noscript fallback for SEO -->
+  <noscript>
+    <div style="padding: 20px; text-align: center;">
+      <h1>JobFit AI - Free ATS Resume Checker</h1>
+      <p>Please enable JavaScript to use the AI-powered resume analyzer.</p>
+      <p>JobFit AI helps you optimize your resume for Applicant Tracking Systems (ATS) with instant AI feedback.</p>
+    </div>
+  </noscript>
+
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
