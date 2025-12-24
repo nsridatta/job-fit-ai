@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Results = lazy(() => import('./pages/Results'));
@@ -27,6 +28,7 @@ export default function App() {
           </Routes>
         </Suspense>
       </BrowserRouter>
+      <SpeedInsights />
     </div>
   );
 }
