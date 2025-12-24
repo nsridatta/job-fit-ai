@@ -30,12 +30,12 @@
 
 ---
 
-## 🖼️ Screenshots
+<!-- ## 🖼️ Screenshots
 
 <div align="center">
 <img src="https://via.placeholder.com/800x450?text=Dashboard+Screenshot" alt="Dashboard" width="80%"/>
 <p><em>Modern, professional dashboard with real-time analysis</em></p>
-</div>
+</div> -->
 
 ---
 
