@@ -15,12 +15,14 @@ import {
   PiMagnifyingGlassDuotone
 } from "react-icons/pi";
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { analyzeResume } from "../api";
 import FileUpload from "../components/FileUpload";
 import JobDescriptionInput from "../components/JobDescriptionInput";
 import { Button } from "../components/ui/Button";
 import { PiRocketLaunchBold } from "react-icons/pi";
+import { NavigationBlocker } from "../components/NavigationBlocker";
+import { useRef } from "react";
 
 const Dashboard: React.FC = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -30,6 +32,7 @@ const Dashboard: React.FC = () => {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Steps for the progress indicator
   const steps = [
@@ -64,6 +67,15 @@ const Dashboard: React.FC = () => {
     return () => clearInterval(timer);
   }, [isLoading]);
 
+  // Handle cleanup of API calls on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
   const handleAnalyze = async () => {
     if (!resumeFile || !jobDescription.trim()) {
       setError("Please upload a resume and paste a job description.");
@@ -73,18 +85,30 @@ const Dashboard: React.FC = () => {
     setError(null);
     setIsLoading(true);
 
+    // Cancel any existing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     const formData = new FormData();
     formData.append("resumeFile", resumeFile);
     formData.append("jobDescription", jobDescription);
 
     try {
-      const response = await analyzeResume(formData);
+      const response = await analyzeResume(formData, controller.signal);
       navigate("/results", { state: response });
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === "AbortError") {
+        console.error("Analysis cancelled by user");
+        return;
+      }
       console.error("Error analyzing resume:", error);
       setError("Failed to analyze resume. Please try again.");
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -103,6 +127,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen w-full bg-white selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+      <NavigationBlocker when={isLoading} />
       {/* Dynamic Background */}
       <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa]">
         <div className="bg-blur-blob w-[500px] h-[500px] bg-blue-100/40 -top-20 -left-20" />
@@ -122,8 +147,8 @@ const Dashboard: React.FC = () => {
             </span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="/blog/resume-keywords-2025" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Resume Tips</a>
-            <a href="/blog/how-jobfit-ai-works" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">How it works</a>
+            <Link to="/blog/resume-keywords-2025" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Resume Tips</Link>
+            <Link to="/blog/how-jobfit-ai-works" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">How it works</Link>
             {/* <Button variant="secondary" size="sm">Sign In</Button>
             <Button size="sm" className="bg-primary hover:bg-primary-dark">Get Started</Button> */}
           </div>
@@ -294,10 +319,10 @@ const Dashboard: React.FC = () => {
             <span className="text-lg font-bold text-slate-900">JobFit AI</span>
           </div>
           <div className="flex gap-10 text-sm font-medium text-slate-500">
-            <a href="/privacy" className="hover:text-primary">Privacy</a>
-            <a href="/terms" className="hover:text-primary">Terms</a>
-            <a href="/blog" className="hover:text-primary">Blog</a>
-            <a href="/contact" className="hover:text-primary">Contact</a>
+            <Link to="/privacy" className="hover:text-primary">Privacy</Link>
+            <Link to="/terms" className="hover:text-primary">Terms</Link>
+            <Link to="/blog" className="hover:text-primary">Blog</Link>
+            <Link to="/contact" className="hover:text-primary">Contact</Link>
           </div>
           <p className="text-xs text-slate-400">© 2025 JobFit AI. All rights reserved.</p>
         </div>

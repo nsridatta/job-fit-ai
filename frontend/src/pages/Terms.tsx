@@ -1,7 +1,7 @@
 // src/pages/Terms.tsx
 import { motion } from "framer-motion";
 import React from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, Link } from "react-router";
 import { PiArrowLeftBold, PiMagicWandDuotone, PiScalesDuotone } from "react-icons/pi";
 import { Button } from "../components/ui/Button";
 
@@ -112,7 +112,7 @@ const Terms: React.FC = () => {
 
                         <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-4">9. Contact</h2>
                         <p className="text-slate-600 leading-relaxed">
-                            For questions about these terms, please visit our <a href="/contact" className="text-primary hover:underline">Contact page</a>.
+                            For questions about these terms, please visit our <Link to="/contact" className="text-primary hover:underline">Contact page</Link>.
                         </p>
                     </div>
                 </motion.div>
