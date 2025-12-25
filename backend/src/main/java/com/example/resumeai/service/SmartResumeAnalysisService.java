@@ -23,7 +23,6 @@ import okhttp3.Response;
 @Service
 public class SmartResumeAnalysisService {
 
-
     private final ObjectMapper mapper = new ObjectMapper();
     private final OkHttpClient client = new OkHttpClient(); // ✅ define client
 
@@ -57,14 +56,20 @@ public class SmartResumeAnalysisService {
 
             String suggestion = "";
             String updated = "";
-            if (sectionName.equalsIgnoreCase("Skills") || sectionName.equalsIgnoreCase("Experience")) {
-                Map<String, Object> gptResult = callGPTForSection(sectionContent, jobDescription);
+
+            // Call AI for key sections that need content transformation
+            if (sectionName.equalsIgnoreCase("Skills") ||
+                    sectionName.equalsIgnoreCase("Experience") ||
+                    sectionName.equalsIgnoreCase("Summary") ||
+                    sectionName.equalsIgnoreCase("Projects")) {
+                Map<String, Object> gptResult = callGPTForSection(sectionName, sectionContent, jobDescription);
                 suggestion = (String) gptResult.getOrDefault("suggestion", "");
                 updated = (String) gptResult.getOrDefault("updated", "");
             }
 
             Map<String, Object> sectionData = new HashMap<>();
             sectionData.put("score", overlapScore);
+            sectionData.put("original", sectionContent); // ✅ Added original content
             sectionData.put("suggestion", suggestion);
             sectionData.put("updated", updated);
 
@@ -79,24 +84,33 @@ public class SmartResumeAnalysisService {
         return response;
     }
 
-    private Map<String, Object> callGPTForSection(String section, String jobDescription) {
+    private Map<String, Object> callGPTForSection(String sectionName, String sectionContent, String jobDescription) {
         String prompt = """
-        You are an expert resume reviewer.
-        Compare the following resume section against the job description and suggest:
-        1. A concise suggestion for improvement.
-        2. An updated version of the section (ATS-friendly, concise).
+                You are an expert resume writer and recruiter.
+                Analyze the following "%s" section from a resume against the provided Job Description.
 
-        Resume Section:
-        %s
+                TASKS:
+                1. Provide a concise suggestion for what is missing or weak (max 20 words).
+                2. Rewrite the section entirely to be high-impact, ATS-friendly, and perfectly aligned with the Job Description.
 
-        Job Description:
-        %s
-        """.formatted(section, jobDescription);
+                CRITICAL RULES:
+                - The "updated" content must be READ-TO-USE resume text.
+                - DO NOT explain what you changed in the "updated" field.
+                - DO NOT use placeholders like [Insert Project Name]. Use the original details but rephrased.
+                - Return ONLY a JSON object with keys "suggestion" and "updated".
+
+                Resume Section Content:
+                %s
+
+                Job Description:
+                %s
+                """
+                .formatted(sectionName, sectionContent, jobDescription);
 
         return callOpenRouterAi(prompt);
     }
 
-     /** Helper to call OpenRouter API (instead of OpenAI) */
+    /** Helper to call OpenRouter API (instead of OpenAI) */
     private Map<String, Object> callOpenRouterAi(String prompt) {
         LOG.info("Calling OpenRouter, demoMode={}", demoMode);
         LOG.info("Prompt: {}", prompt);
@@ -105,18 +119,18 @@ public class SmartResumeAnalysisService {
             try {
                 // Build the request body (similar to OpenAI)
                 String requestBody = mapper.writeValueAsString(Map.of(
-                    "model", "nvidia/nemotron-nano-9b-v2:free", // Or your chosen model from OpenRouter
-                    "messages", new Object[]{
-                        Map.of("role", "system", "content", "You are a resume reviewer. Always return valid JSON without extra text."),
-                        Map.of("role", "user", "content", prompt)
-                    }
-                ));
+                        "model", "nvidia/nemotron-nano-9b-v2:free", // Or your chosen model from OpenRouter
+                        "messages", new Object[] {
+                                Map.of("role", "system", "content",
+                                        "You are a resume reviewer. Always return valid JSON without extra text."),
+                                Map.of("role", "user", "content", prompt)
+                        }));
 
                 // Build request for OpenRouter
                 Request request = new Request.Builder()
                         .url("https://openrouter.ai/api/v1/chat/completions") // OpenRouter endpoint
                         .post(RequestBody.create(requestBody, JSON))
-                        .addHeader("Authorization", "Bearer " + apiKey) // Your OpenRouter API key                        
+                        .addHeader("Authorization", "Bearer " + apiKey) // Your OpenRouter API key
                         .addHeader("X-Title", "Resume AI Analyzer") // Optional: Your app name
                         .build();
 
@@ -148,16 +162,14 @@ public class SmartResumeAnalysisService {
         return Map.of("error", "AI processing failed", "details", "Retries exhausted");
     }
 
-
     private Map<String, Object> callOpenAi(String prompt) {
         try {
             String requestBody = mapper.writeValueAsString(Map.of(
                     "model", "gpt-4o-mini",
-                    "messages", new Object[]{
+                    "messages", new Object[] {
                             Map.of("role", "system", "content", "You are a resume reviewer."),
                             Map.of("role", "user", "content", prompt)
-                    }
-            ));
+                    }));
 
             RequestBody body = RequestBody.create(requestBody, JSON); // ✅ use JSON constant
 

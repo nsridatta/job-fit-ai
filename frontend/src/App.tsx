@@ -10,11 +10,14 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const Contact = lazy(() => import('./pages/Contact'));
 
+const OptimizationHub = lazy(() => import('./pages/OptimizationHub'));
+
 const router = createBrowserRouter(
   createRoutesFromElements(
     <Route>
       <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/results" element={<Results />} />
+      <Route path="/optimizer" element={<OptimizationHub />} />
       <Route path="/blog" element={<Blog />} />
       <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/privacy" element={<Privacy />} />

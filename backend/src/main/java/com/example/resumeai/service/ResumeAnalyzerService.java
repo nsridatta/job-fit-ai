@@ -1,7 +1,10 @@
 package com.example.resumeai.service;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -18,6 +21,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+
 @Service
 public class ResumeAnalyzerService {
 
@@ -26,10 +30,10 @@ public class ResumeAnalyzerService {
     private final RetryTemplate retryTemplate; // Injected RetryTemplate
 
     private final OkHttpClient client = new OkHttpClient.Builder()
-    .connectTimeout(60, TimeUnit.SECONDS)  // Increase connection timeout
-    .readTimeout(60, TimeUnit.SECONDS)     // Increase read timeout
-    .writeTimeout(30, TimeUnit.SECONDS)    // Increase write timeout
-    .build();
+            .connectTimeout(60, TimeUnit.SECONDS) // Increase connection timeout
+            .readTimeout(60, TimeUnit.SECONDS) // Increase read timeout
+            .writeTimeout(30, TimeUnit.SECONDS) // Increase write timeout
+            .build();
     private final ObjectMapper mapper = new ObjectMapper();
     private final String apiKey;
     private final boolean demoMode;
@@ -39,126 +43,144 @@ public class ResumeAnalyzerService {
         this.demoMode = "demo".equals(apiKey);
         LOG.info("ResumeAnalyzerService initialized, demoMode={}", demoMode);
         LOG.info("api key: {}", apiKey);
-        this.retryTemplate = retryTemplate;        
+        this.retryTemplate = retryTemplate;
         LOG.info("ResumeAnalyzerService initialized, demoMode={}", demoMode);
     }
 
-    /** Existing method - general resume analysis */
+    /** Existing method - general resume analysis with original content support */
     public Map<String, Object> analyzeResume(String text) {
         if (demoMode) {
             return Map.of(
                     "sections", Map.of(
-                            "Contact", Map.of("score", 180, "suggestion", "Add LinkedIn profile"),
-                            "Summary", Map.of("score", 150, "suggestion", "Make summary metrics-driven")
-                    ),
-                    "totalScore", 820,
+                            "Contact",
+                            Map.of("score", 18, "original", "Contact details", "suggestion", "Add LinkedIn profile"),
+                            "Summary",
+                            Map.of("score", 15, "original", "Professional summary", "suggestion",
+                                    "Make summary metrics-driven")),
+                    "totalScore", 82,
                     "overallSuggestion", "Strong resume; improve summary and quantify achievements.",
-                    "updatedInfo", new String[]{"Add dates for latest job", "Quantify team size"},
-                    "templateVerdict", "ATS-friendly ✅"
-            );
+                    "updatedInfo", new String[] { "Add dates for latest job", "Quantify team size" },
+                    "templateVerdict", "ATS-friendly ✅");
         }
 
-        String prompt = """
-            You are a professional resume reviewer.
-            Analyze the following resume text and return ONLY JSON with:
-            {
-              "sections": {
-                "Contact": {"score": <int>, "suggestion": "<string>"},
-                "Summary": {"score": <int>, "suggestion": "<string>"},
-                "Experience": {"score": <int>, "suggestion": "<string>"},
-                "Education": {"score": <int>, "suggestion": "<string>"},
-                "Skills": {"score": <int>, "suggestion": "<string>"}
-              },
-              "totalScore": <int>,
-              "overallSuggestion": "<string>",
-              "updatedInfo": ["<string>", "<string>"],
-              "templateVerdict": "<string>"
+        Map<String, String> resumeSections = NLPUtils.splitResumeIntoSections(text);
+        Map<String, Map<String, Object>> sectionResults = new LinkedHashMap<>();
+
+        String combinedPrompt = """
+                You are a professional resume reviewer.
+                Analyze the following resume sections and return ONLY JSON with:
+                {
+                  "sections": {
+                    "Summary": {"score": <int 0-10>, "suggestion": "<string>"},
+                    "Skills": {"score": <int 0-10>, "suggestion": "<string>"},
+                    "Experience": {"score": <int 0-10>, "suggestion": "<string>"},
+                    "Projects": {"score": <int 0-10>, "suggestion": "<string>"},
+                    "Education": {"score": <int 0-10>, "suggestion": "<string>"},
+                    "Certifications": {"score": <int 0-10>, "suggestion": "<string>"}
+                  },
+                  "totalScore": <int 0-100>,
+                  "overallSuggestion": "<string>",
+                  "updatedInfo": ["<string>", "<string>"],
+                  "templateVerdict": "<string>"
+                }
+
+                Resume Sections:
+                %s
+                """.formatted(resumeSections.toString());
+
+        Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(combinedPrompt));
+
+        // Merge original content back into AI results
+        if (aiResponse.containsKey("sections")) {
+            Map<String, Map<String, Object>> aiSections = (Map<String, Map<String, Object>>) aiResponse.get("sections");
+            for (String name : resumeSections.keySet()) {
+                Map<String, Object> result = aiSections.getOrDefault(name, new HashMap<>());
+                result.put("original", resumeSections.get(name));
+                sectionResults.put(name, result);
             }
+            aiResponse.put("sections", sectionResults);
+        }
 
-            Resume text:
-            %s
-            """.formatted(text);
-
-            String redactedPrompt = PIIRedactor.redactPII(prompt);
-            LOG.info("Sending request to OpenRouter with redacted prompt: {}", redactedPrompt);
-
-        // return callOpenAi(prompt);
-        // return callOpenRouterAi(prompt);
-         return retryTemplate.execute(context -> {
-            int attempt = context.getRetryCount() + 1;
-            LOG.info("OpenRouter API call attempt {}", attempt);
-            return callOpenRouterAi(prompt);
-        });
-        
+        return aiResponse;
     }
-    // As we are using RetryTemplate, @Retryable is not needed
-    // @Retryable(
-    //     retryFor = SocketTimeoutException.class, // Retry on timeouts
-    //     maxAttempts = 3,
-    //     backoff = @Backoff(delay = 1000, multiplier = 2, maxDelay = 10000, random = true)
-    // )
-    /** New method - resume vs job description analysis */
+
+    /**
+     * New method - resume vs job description analysis with original content support
+     */
     public Map<String, Object> analyzeResumeForJob(String resumeText, String jobDescription) {
         if (demoMode) {
             return Map.of(
                     "sections", Map.of(
-                            "Summary", Map.of("score", 140, "suggestion", "Add cloud keywords", "updated", "Updated summary with AWS/DevOps"),
-                            "Experience", Map.of("score", 170, "suggestion", "Match responsibilities to JD", "updated", "Added CI/CD pipeline achievements")
-                    ),
-                    "jobMatchScore", 760,
+                            "Summary",
+                            Map.of("score", 14, "original", "Resume Summary", "suggestion", "Add cloud keywords",
+                                    "updated", "Updated summary with AWS/DevOps"),
+                            "Experience",
+                            Map.of("score", 17, "original", "Work experience", "suggestion",
+                                    "Match responsibilities to JD", "updated", "Added CI/CD pipeline achievements")),
+                    "jobMatchScore", 76,
                     "overallSuggestion", "Tailor experience to highlight cloud skills.",
-                    "missingKeywords", new String[]{"Kubernetes", "CI/CD"},
-                    "templateVerdict", "ATS-friendly ✅"
-            );
+                    "missingKeywords", new String[] { "Kubernetes", "CI/CD" },
+                    "templateVerdict", "ATS-friendly ✅");
         }
 
+        Map<String, String> resumeSections = NLPUtils.splitResumeIntoSections(resumeText);
+        Set<String> jdKeywords = NLPUtils.extractKeywords(jobDescription);
+        Map<String, Map<String, Object>> sectionResults = new LinkedHashMap<>();
+
         String prompt = """
-            You are a professional recruiter and resume reviewer.
-            Compare the following resume with the given job description.
+                You are a professional recruiter and resume reviewer.
+                Compare the follow resume sections with the given job description.
 
-            Return ONLY JSON with:
-            {
-              "sections": {
-                "Contact": {"score": <int>, "suggestion": "<string>", "updated": "<string>"},
-                "Summary": {"score": <int>, "suggestion": "<string>", "updated": "<string>"},
-                "Experience": {"score": <int>, "suggestion": "<string>", "updated": "<string>"},
-                "Education": {"score": <int>, "suggestion": "<string>", "updated": "<string>"},
-                "Skills": {"score": <int>, "suggestion": "<string>", "updated": "<string>"}
-              },
-              "jobMatchScore": <int> // out of 100,
-              "overallSuggestion": "<string>",
-              "missingKeywords": ["<string>", "<string>"],
-              "templateVerdict": "<string>"
+                Return ONLY JSON with:
+                {
+                  "sections": {
+                    "Summary": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
+                    "Skills": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
+                    "Experience": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
+                    "Projects": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
+                    "Education": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
+                    "Certifications": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"}
+                  },
+                  "jobMatchScore": <int 0-100>,
+                  "overallSuggestion": "<string>",
+                  "missingKeywords": ["<string>", "<string>"],
+                  "templateVerdict": "<string>"
+                }
+
+                CRITICAL: The "updated" field for each section must contain ready-to-use resume text tailored to the JD.
+
+                Resume Sections:
+                %s
+
+                Job description:
+                %s
+                """.formatted(resumeSections.toString(), jobDescription);
+
+        Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(prompt));
+
+        // Merge original content back into AI results
+        if (aiResponse.containsKey("sections")) {
+            Object sectionsObj = aiResponse.get("sections");
+            if (sectionsObj instanceof Map) {
+                Map<String, Map<String, Object>> aiSections = (Map<String, Map<String, Object>>) sectionsObj;
+                for (String name : resumeSections.keySet()) {
+                    Map<String, Object> result = aiSections.getOrDefault(name, new HashMap<>());
+                    result.put("original", resumeSections.get(name));
+                    sectionResults.put(name, result);
+                }
+                aiResponse.put("sections", sectionResults);
             }
+        }
 
-            Resume text:
-            %s
-
-            Job description:
-            %s
-            """.formatted(resumeText, jobDescription);
-
-            String redactedPrompt = PIIRedactor.redactPII(prompt);
-            LOG.info("Sending request to OpenRouter with redacted prompt: {}", redactedPrompt);
-
-        // return callOpenAi(prompt);
-        // return callOpenRouterAi(prompt);
-         return retryTemplate.execute(context -> {
-            int attempt = context.getRetryCount() + 1;
-            LOG.info("OpenRouter API call attempt {}", attempt);
-            return callOpenRouterAi(prompt);
-        });
-
-            // LOG.info("Prompt from analyzeResumeForJob method: {}", prompt);
-
-        // return callOpenAi(prompt);
-        // return callOpenRouterAi(prompt);
+        return aiResponse;
     }
 
-    //  @Recover
-    // public Map<String, Object> recover(SocketTimeoutException e, String resumeText, String jobDescription) {
-    //     LOG.error("All retry attempts failed for OpenRouter call", e);
-    //     return Map.of("error", "AI service unavailable", "details", "Timeout after retries");
+    // @Recover
+    // public Map<String, Object> recover(SocketTimeoutException e, String
+    // resumeText, String jobDescription) {
+    // LOG.error("All retry attempts failed for OpenRouter call", e);
+    // return Map.of("error", "AI service unavailable", "details", "Timeout after
+    // retries");
     // }
 
     /** Helper to call OpenAI API */
@@ -171,12 +193,11 @@ public class ResumeAnalyzerService {
             try {
                 // 🔹 Build the request body here
                 String requestBody = mapper.writeValueAsString(Map.of(
-                    "model", "gpt-3.5-turbo",
-                    "messages", new Object[]{
-                        Map.of("role", "system", "content", "You are a resume reviewer."),
-                        Map.of("role", "user", "content", prompt)
-                    }
-                ));
+                        "model", "gpt-3.5-turbo",
+                        "messages", new Object[] {
+                                Map.of("role", "system", "content", "You are a resume reviewer."),
+                                Map.of("role", "user", "content", prompt)
+                        }));
 
                 // 🔹 Build request
                 Request request = new Request.Builder()
@@ -196,7 +217,6 @@ public class ResumeAnalyzerService {
                         throw new IOException("Unexpected code: " + response);
                     }
 
-                    
                     String body = response.body().string();
                     JsonNode root = mapper.readTree(body);
 
@@ -216,24 +236,24 @@ public class ResumeAnalyzerService {
 
     /** Helper to call OpenRouter API (instead of OpenAI) */
     private Map<String, Object> callOpenRouterAi(String prompt) {
-        LOG.info("Calling OpenRouter, demoMode={}", demoMode);      
+        LOG.info("Calling OpenRouter, demoMode={}", demoMode);
 
         for (int attempt = 1; attempt <= 3; attempt++) {
             try {
                 // Build the request body (similar to OpenAI)
                 String requestBody = mapper.writeValueAsString(Map.of(
-                    "model", "nvidia/nemotron-nano-9b-v2:free", // Or your chosen model from OpenRouter
-                    "messages", new Object[]{
-                        Map.of("role", "system", "content", "You are a resume reviewer. Always return valid JSON without extra text."),
-                        Map.of("role", "user", "content", prompt)
-                    }
-                ));
+                        "model", "nvidia/nemotron-nano-9b-v2:free", // Or your chosen model from OpenRouter
+                        "messages", new Object[] {
+                                Map.of("role", "system", "content",
+                                        "You are a resume reviewer. Always return valid JSON without extra text."),
+                                Map.of("role", "user", "content", prompt)
+                        }));
 
                 // Build request for OpenRouter
                 Request request = new Request.Builder()
                         .url("https://openrouter.ai/api/v1/chat/completions") // OpenRouter endpoint
                         .post(RequestBody.create(requestBody, JSON))
-                        .addHeader("Authorization", "Bearer " + apiKey) // Your OpenRouter API key                        
+                        .addHeader("Authorization", "Bearer " + apiKey) // Your OpenRouter API key
                         .addHeader("X-Title", "Resume AI Analyzer") // Optional: Your app name
                         .build();
 

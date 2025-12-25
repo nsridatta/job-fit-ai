@@ -16,20 +16,55 @@ public class NLPUtils {
                 .collect(Collectors.toSet());
     }
 
-    // Split resume into mock sections (replace with proper parser if needed)
+    // Split resume into real sections using a more robust parser
     public static Map<String, String> splitResumeIntoSections(String resumeText) {
         Map<String, String> sections = new LinkedHashMap<>();
-        sections.put("Skills", extractSection(resumeText, "skills"));
-        sections.put("Experience", extractSection(resumeText, "experience"));
-        sections.put("Education", extractSection(resumeText, "education"));
+        sections.put("Summary", extractSection(resumeText, List.of("summary", "objective", "profile")));
+        sections.put("Skills", extractSection(resumeText, List.of("skills", "competencies", "tools")));
+        sections.put("Experience", extractSection(resumeText, List.of("experience", "employment", "work history")));
+        sections.put("Projects", extractSection(resumeText, List.of("projects", "personal projects", "portfolio")));
+        sections.put("Education", extractSection(resumeText, List.of("education", "academic")));
+        sections.put("Certifications", extractSection(resumeText, List.of("certifications", "licenses", "awards")));
         return sections;
     }
 
-    private static String extractSection(String text, String keyword) {
-        if (text.toLowerCase().contains(keyword)) {
-            return "Sample " + keyword + " section extracted from resume.";
+    private static String extractSection(String text, List<String> keywords) {
+        String lowerText = text.toLowerCase();
+        int startIndex = -1;
+        String matchedKeyword = "";
+
+        for (String keyword : keywords) {
+            int idx = lowerText.indexOf(keyword);
+            if (idx != -1 && (startIndex == -1 || idx < startIndex)) {
+                startIndex = idx + keyword.length();
+                matchedKeyword = keyword;
+            }
         }
-        return "No " + keyword + " section found.";
+
+        if (startIndex == -1)
+            return "No relevant section found.";
+
+        // Find the next section header (typical words like Experience, Education, etc.
+        // if we started at Summary)
+        List<String> allSectionMarkers = Arrays.asList("summary", "objective", "skills", "experience", "employment",
+                "education", "projects", "certifications", "contact");
+        int nextSectionIndex = text.length();
+
+        for (String marker : allSectionMarkers) {
+            if (marker.equals(matchedKeyword))
+                continue;
+            int idx = lowerText.indexOf(marker, startIndex);
+            if (idx != -1 && idx < nextSectionIndex) {
+                nextSectionIndex = idx;
+            }
+        }
+
+        String content = text.substring(startIndex, nextSectionIndex).trim();
+        // Remove trailing colon or whitespace often found after headers
+        if (content.startsWith(":"))
+            content = content.substring(1).trim();
+
+        return content.isEmpty() ? "Section found but content is empty." : content;
     }
 
     // Calculate overlap between resume section and JD keywords

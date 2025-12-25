@@ -56,7 +56,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
               Drop your resume here or choose a file.
             </p>
             <p className="text-slate-400 text-xs font-medium uppercase tracking-tight">
-              PDF & DOCX only. Max 5MB file size.
+              PDF only. Max 5MB file size.
             </p>
           </div>
 
