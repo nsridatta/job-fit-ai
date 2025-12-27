@@ -67,26 +67,31 @@ public class ResumeAnalyzerService {
         Map<String, Map<String, Object>> sectionResults = new LinkedHashMap<>();
 
         String combinedPrompt = """
-                You are a professional resume reviewer.
-                Analyze the following resume sections and return ONLY JSON with:
+                [STRICT JSON MODE]
+                Analyze the following resume sections and return ONLY a JSON object.
+
+                REQUIRED STRUCTURE:
                 {
                   "sections": {
-                    "Summary": {"score": <int 0-10>, "suggestion": "<string>"},
-                    "Skills": {"score": <int 0-10>, "suggestion": "<string>"},
-                    "Experience": {"score": <int 0-10>, "suggestion": "<string>"},
-                    "Projects": {"score": <int 0-10>, "suggestion": "<string>"},
-                    "Education": {"score": <int 0-10>, "suggestion": "<string>"},
-                    "Certifications": {"score": <int 0-10>, "suggestion": "<string>"}
+                    "Summary": {"score": 0-10, "suggestion": "string"},
+                    "Skills": {"score": 0-10, "suggestion": "string"},
+                    "Experience": {"score": 0-10, "suggestion": "string"},
+                    "Projects": {"score": 0-10, "suggestion": "string"},
+                    "Education": {"score": 0-10, "suggestion": "string"},
+                    "Certifications": {"score": 0-10, "suggestion": "string"}
                   },
-                  "totalScore": <int 0-100>,
-                  "overallSuggestion": "<string>",
-                  "updatedInfo": ["<string>", "<string>"],
-                  "templateVerdict": "<string>"
+                  "totalScore": 0-100,
+                  "overallSuggestion": "string",
+                  "updatedInfo": ["string"],
+                  "templateVerdict": "string"
                 }
 
-                Resume Sections:
+                CRITICAL: Every section MUST be a key inside the "sections" object. Do NOT put sections at the root of the JSON.
+
+                Resume Data:
                 %s
-                """.formatted(resumeSections.toString());
+                """
+                .formatted(resumeSections.toString());
 
         Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(combinedPrompt));
 
@@ -128,33 +133,37 @@ public class ResumeAnalyzerService {
         Map<String, Map<String, Object>> sectionResults = new LinkedHashMap<>();
 
         String prompt = """
-                You are a professional recruiter and resume reviewer.
-                Compare the follow resume sections with the given job description.
+                [STRICT JSON MODE]
+                Compare these resume sections with the Job Description.
+                Return ONLY a valid JSON object.
 
-                Return ONLY JSON with:
+                REQUIRED STRUCTURE:
                 {
                   "sections": {
-                    "Summary": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
-                    "Skills": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
-                    "Experience": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
-                    "Projects": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
-                    "Education": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"},
-                    "Certifications": {"score": <int 0-10>, "suggestion": "<string>", "updated": "<string>"}
+                    "Summary": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
+                    "Skills": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
+                    "Experience": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
+                    "Projects": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
+                    "Education": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
+                    "Certifications": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"}
                   },
-                  "jobMatchScore": <int 0-100>,
-                  "overallSuggestion": "<string>",
-                  "missingKeywords": ["<string>", "<string>"],
-                  "templateVerdict": "<string>"
+                  "jobMatchScore": 0-100,
+                  "overallSuggestion": "string",
+                  "missingKeywords": ["string"],
+                  "templateVerdict": "string"
                 }
 
-                CRITICAL: The "updated" field for each section must contain ready-to-use resume text tailored to the JD.
+                CRITICAL RULES:
+                1. Every category (like Experience, Skills, etc.) MUST be a key inside the "sections" object. Do NOT put them at the root.
+                2. The "updated" field MUST contain ready-to-use resume text tailored to the Job Description.
 
-                Resume Sections:
+                Resume Data:
                 %s
 
-                Job description:
+                Job Description:
                 %s
-                """.formatted(resumeSections.toString(), jobDescription);
+                """
+                .formatted(resumeSections.toString(), jobDescription);
 
         Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(prompt));
 

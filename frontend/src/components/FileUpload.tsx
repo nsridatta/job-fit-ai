@@ -78,7 +78,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFileSelect }) => {
       <input
         id="resume-upload"
         type="file"
-        accept=".pdf,.doc,.docx"
+        accept=".pdf"
         onChange={handleFileChange}
         ref={fileInputRef}
         className="hidden"
