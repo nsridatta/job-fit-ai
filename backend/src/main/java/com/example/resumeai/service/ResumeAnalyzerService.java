@@ -36,15 +36,18 @@ public class ResumeAnalyzerService {
             .build();
     private final ObjectMapper mapper = new ObjectMapper();
     private final String apiKey;
+    private final String model;
     private final boolean demoMode;
 
-    public ResumeAnalyzerService(@Value("${spring.ai.openai.api-key}") String apiKey, RetryTemplate retryTemplate) {
+    public ResumeAnalyzerService(
+            @Value("${spring.ai.openai.api-key}") String apiKey,
+            @Value("${spring.ai.openai.chat.options.model}") String model,
+            RetryTemplate retryTemplate) {
         this.apiKey = apiKey;
+        this.model = model;
         this.demoMode = "demo".equals(apiKey);
-        LOG.info("ResumeAnalyzerService initialized, demoMode={}", demoMode);
-        LOG.info("api key: {}", apiKey);
         this.retryTemplate = retryTemplate;
-        LOG.info("ResumeAnalyzerService initialized, demoMode={}", demoMode);
+        LOG.info("ResumeAnalyzerService initialized, demoMode={}, model={}", demoMode, model);
     }
 
     /** Existing method - general resume analysis with original content support */
@@ -72,6 +75,9 @@ public class ResumeAnalyzerService {
 
                 REQUIRED STRUCTURE:
                 {
+                  "templateVerdict": "ATS-friendly ✅ or similar",
+                  "totalScore": 0-100,
+                  "overallSuggestion": "string",
                   "sections": {
                     "Summary": {"score": 0-10, "suggestion": "string"},
                     "Skills": {"score": 0-10, "suggestion": "string"},
@@ -80,10 +86,7 @@ public class ResumeAnalyzerService {
                     "Education": {"score": 0-10, "suggestion": "string"},
                     "Certifications": {"score": 0-10, "suggestion": "string"}
                   },
-                  "totalScore": 0-100,
-                  "overallSuggestion": "string",
-                  "updatedInfo": ["string"],
-                  "templateVerdict": "string"
+                  "updatedInfo": ["string"]
                 }
 
                 CRITICAL RULES:
@@ -170,6 +173,10 @@ public class ResumeAnalyzerService {
 
                 REQUIRED STRUCTURE:
                 {
+                  "templateVerdict": "ATS-friendly ✅ or similar",
+                  "jobMatchScore": 0-100,
+                  "overallSuggestion": "string",
+                  "missingKeywords": ["string"],
                   "sections": {
                     "Summary": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
                     "Skills": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
@@ -177,11 +184,7 @@ public class ResumeAnalyzerService {
                     "Projects": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
                     "Education": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"},
                     "Certifications": {"score": 0-10, "suggestion": "string", "updated": "ready-to-use text"}
-                  },
-                  "jobMatchScore": 0-100,
-                  "overallSuggestion": "string",
-                  "missingKeywords": ["string"],
-                  "templateVerdict": "string"
+                  }
                 }
 
                 CRITICAL RULES:
@@ -242,65 +245,6 @@ public class ResumeAnalyzerService {
         return aiResponse;
     }
 
-    // @Recover
-    // public Map<String, Object> recover(SocketTimeoutException e, String
-    // resumeText, String jobDescription) {
-    // LOG.error("All retry attempts failed for OpenRouter call", e);
-    // return Map.of("error", "AI service unavailable", "details", "Timeout after
-    // retries");
-    // }
-
-    /** Helper to call OpenAI API */
-    private Map<String, Object> callOpenAi(String prompt) {
-        LOG.info("Calling OpenAI, demoMode={}", demoMode);
-        LOG.info("api key: {}", apiKey);
-        LOG.info("prompt going from callOpenAi method : {}", prompt);
-
-        for (int attempt = 1; attempt <= 3; attempt++) {
-            try {
-                // 🔹 Build the request body here
-                String requestBody = mapper.writeValueAsString(Map.of(
-                        "model", "gpt-3.5-turbo",
-                        "messages", new Object[] {
-                                Map.of("role", "system", "content", "You are a resume reviewer."),
-                                Map.of("role", "user", "content", prompt)
-                        }));
-
-                // 🔹 Build request
-                Request request = new Request.Builder()
-                        .url("https://api.openai.com/v1/chat/completions")
-                        .post(RequestBody.create(requestBody, JSON))
-                        .addHeader("Authorization", "Bearer " + apiKey)
-                        .build();
-
-                try (Response response = client.newCall(request).execute()) {
-                    if (response.code() == 429) {
-                        LOG.warn("Rate limit hit (attempt {}), backing off...", attempt);
-                        Thread.sleep(1000L * attempt); // exponential backoff
-                        continue; // retry
-                    }
-                    if (!response.isSuccessful()) {
-                        LOG.error("OpenAI call failed: HTTP {}", response.code());
-                        throw new IOException("Unexpected code: " + response);
-                    }
-
-                    String body = response.body().string();
-                    JsonNode root = mapper.readTree(body);
-
-                    // ✅ Extract content
-                    String content = root.at("/choices/0/message/content").asText();
-                    return mapper.readValue(content, Map.class);
-                }
-            } catch (Exception e) {
-                LOG.error("Error calling OpenAI: {}", e.getMessage(), e);
-                if (attempt == 3) {
-                    return Map.of("error", "AI processing failed", "details", e.getMessage());
-                }
-            }
-        }
-        return Map.of("error", "AI processing failed", "details", "Retries exhausted");
-    }
-
     /** Helper to call OpenRouter API (instead of OpenAI) */
     private Map<String, Object> callOpenRouterAi(String prompt) {
         LOG.info("Calling OpenRouter, demoMode={}", demoMode);
@@ -309,7 +253,7 @@ public class ResumeAnalyzerService {
             try {
                 // Build the request body (similar to OpenAI)
                 String requestBody = mapper.writeValueAsString(Map.of(
-                        "model", "nvidia/nemotron-nano-9b-v2:free", // Or your chosen model from OpenRouter
+                        "model", model, // Use injected model name
                         "messages", new Object[] {
                                 Map.of("role", "system", "content",
                                         "You are a resume reviewer. Always return valid JSON without extra text."),
@@ -321,7 +265,7 @@ public class ResumeAnalyzerService {
                         .url("https://openrouter.ai/api/v1/chat/completions") // OpenRouter endpoint
                         .post(RequestBody.create(requestBody, JSON))
                         .addHeader("Authorization", "Bearer " + apiKey) // Your OpenRouter API key
-                        .addHeader("X-Title", "Resume AI Analyzer") // Optional: Your app name
+                        .addHeader("X-Title", "Job Fit AI ATS Resume Analyzer") // Optional: Your app name
                         .build();
 
                 try (Response response = client.newCall(request).execute()) {
