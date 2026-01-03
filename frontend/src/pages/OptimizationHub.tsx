@@ -1,18 +1,19 @@
-import { motion } from "framer-motion";
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
     PiArrowLeftBold,
-    PiMagicWandDuotone,
-    PiCheckCircleFill,
+    PiMagicWandBold,
     PiDownloadSimpleBold,
-    PiSparkleBold,
     PiInfoBold,
-    PiInfoFill,
-    PiMagicWandFill
+    PiUserCircleBold,
+    PiMagicWandDuotone,
+    PiCameraBold,
+    PiTrashBold,
+    PiGlobeBold
 } from "react-icons/pi";
 import { Button } from "../components/ui/Button";
-import { generateOptimizedDocx } from "../utils/docxGenerator";
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
+import ResumePDF from '../components/ResumePDF';
 
 interface SectionData {
     score: number;
@@ -34,15 +35,39 @@ const OptimizationHub: React.FC = () => {
     const navigate = useNavigate();
     const data = location.state as ResultsData;
 
-    const [isGenerating, setIsGenerating] = useState(false);
     const [personalInfo, setPersonalInfo] = useState({
         name: "",
+        title: "",
         email: "",
         phone: "",
         location: "",
-        linkedin: ""
+        linkedin: "",
+        github: "",
+        profilePic: "",
+        languages: ""
     });
     const [editedContent, setEditedContent] = useState<{ [key: string]: string }>({});
+
+    // Initialize content with "clubbing" logic for mid-range scores
+    useEffect(() => {
+        if (data?.sections) {
+            const initial: { [key: string]: string } = {};
+            Object.entries(data.sections).forEach(([name, sec]) => {
+                // If original exists (40-65 range), club them if they are different
+                if (sec.original && sec.original !== "No relevant section found.") {
+                    if (sec.updated && sec.updated !== sec.original) {
+                        initial[name] = `${sec.original}\n\n--- AI RECOMMENDATION ---\n${sec.updated}`.trim();
+                    } else {
+                        initial[name] = sec.original.trim();
+                    }
+                } else {
+                    // High score (>8 section) or Low score/No original provided
+                    initial[name] = sec.updated || sec.original || "";
+                }
+            });
+            setEditedContent(initial);
+        }
+    }, [data]);
 
     if (!data) {
         return (
@@ -57,27 +82,6 @@ const OptimizationHub: React.FC = () => {
         );
     }
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { staggerChildren: 0.1 } }
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
-
-    // Initialize edited content with original resume text
-    useEffect(() => {
-        if (data?.sections) {
-            const initial: { [key: string]: string } = {};
-            Object.entries(data.sections).forEach(([name, section]) => {
-                initial[name] = section.original || section.updated || "";
-            });
-            setEditedContent(initial);
-        }
-    }, [data]);
-
     const handleApplyAI = (sectionName: string) => {
         const aiText = data.sections[sectionName]?.updated;
         if (aiText) {
@@ -85,287 +89,231 @@ const OptimizationHub: React.FC = () => {
         }
     };
 
-    const handleDownload = async () => {
-        setIsGenerating(true);
-        try {
-            await generateOptimizedDocx(data, editedContent, personalInfo);
-        } catch (error) {
-            console.error("Failed to generate docx:", error);
-        } finally {
-            setIsGenerating(false);
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPersonalInfo(prev => ({ ...prev, profilePic: reader.result as string }));
+            };
+            reader.readAsDataURL(file);
         }
     };
 
+    const handleRemoveImage = () => {
+        setPersonalInfo(prev => ({ ...prev, profilePic: "" }));
+    };
+
     return (
-        <div className="min-h-screen w-full bg-white selection:bg-primary/20 overflow-x-hidden">
-            {/* Background Decor */}
-            <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa]">
-                <div className="bg-blur-blob w-[600px] h-[600px] bg-violet-100/30 -top-40 -left-20" />
-                <div className="bg-blur-blob w-[500px] h-[500px] bg-blue-100/30 -bottom-20 -right-20" />
-            </div>
-
-            {/* Nav */}
-            <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-100">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <button
-                            onClick={() => navigate("/results", { state: data })}
-                            className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
-                        >
-                            <PiArrowLeftBold className="w-5 h-5 text-slate-700" />
-                        </button>
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                                <PiMagicWandDuotone className="text-white w-6 h-6" />
-                            </div>
-                            <h1 className="text-xl font-bold tracking-tight text-slate-900">Resume Optimizer Hub</h1>
-                        </div>
+        <div className="min-h-screen bg-[#fafafa] flex flex-col h-screen overflow-hidden">
+            {/* Header */}
+            <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-30 shrink-0">
+                <div className="flex items-center gap-4">
+                    <button onClick={() => navigate("/dashboard")} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500">
+                        <PiArrowLeftBold className="w-5 h-5" />
+                    </button>
+                    <div>
+                        <h1 className="font-bold text-slate-900">Resume Optimizer Hub</h1>
+                        <p className="text-xs text-slate-500 italic">Live PDF Preview & High-Score Editor</p>
                     </div>
-                    <Button
-                        className="hidden md:flex bg-primary hover:bg-primary-dark"
-                        onClick={handleDownload}
-                        isLoading={isGenerating}
-                    >
-                        <PiDownloadSimpleBold className="w-5 h-5" />
-                        Download Optimized DOCX
-                    </Button>
                 </div>
-            </nav>
 
-            <main className="max-w-7xl mx-auto px-6 py-12">
-                <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
-                    className="grid lg:grid-cols-3 gap-12"
-                >
-                    {/* Sidebar: Control Panel */}
-                    <div className="lg:col-span-1 space-y-8">
-                        <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-100 border border-slate-100">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <PiSparkleBold className="text-primary w-6 h-6" />
-                                AI Improvements
-                            </h2>
-                            <div className="space-y-4">
-                                {Object.entries(data.sections).map(([name, section]) => (
-                                    <div
-                                        key={name}
-                                        className="w-full text-left p-4 rounded-2xl border border-slate-100 bg-slate-50/50 flex items-center justify-between"
-                                    >
-                                        <div>
-                                            <p className="font-bold text-slate-900 capitalize">{name.toLowerCase()}</p>
-                                            <p className="text-xs text-slate-500">Analysis Score: {section.score}/10</p>
-                                        </div>
-                                        <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center transition-colors ${section.score >= 8
-                                            ? 'bg-primary/10 border-primary/20 text-primary'
-                                            : 'bg-amber-50 border-amber-200 text-amber-500'
-                                            }`}>
-                                            <span className="text-[10px] font-bold">{section.score}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
+                <div className="flex items-center gap-3">
+                    <PDFDownloadLink
+                        document={<ResumePDF personalInfo={personalInfo} editedContent={editedContent} />}
+                        fileName={`${personalInfo.name.replace(/\s+/g, '_') || 'Resume'}_Optimized.pdf`}
+                    >
+                        {({ loading }) => (
+                            <Button disabled={loading || !personalInfo.name}
+                                title="Add Name to download"
+                                className="gap-2 bg-slate-900 text-white hover:bg-slate-800">
+                                <PiDownloadSimpleBold className="w-4 h-4" />
+                                {loading ? 'Preparing...' : 'Download PDF'}
+                            </Button>
+                        )}
+                    </PDFDownloadLink>
+                </div>
+            </header>
 
-                        {/* Personal Info Form */}
-                        <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-8 shadow-xl shadow-slate-100 border border-slate-100">
-                            <h2 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                                <PiInfoBold className="text-primary w-6 h-6" />
-                                Contact Details
-                            </h2>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Full Name</label>
-                                    <input
-                                        type="text"
-                                        placeholder="John Doe"
-                                        className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        value={personalInfo.name}
-                                        onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Email</label>
-                                    <input
-                                        type="email"
-                                        placeholder="john@example.com"
-                                        className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        value={personalInfo.email}
-                                        onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Phone</label>
-                                        <input
-                                            type="text"
-                                            placeholder="+1..."
-                                            className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                            value={personalInfo.phone}
-                                            onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">Location</label>
-                                        <input
-                                            type="text"
-                                            placeholder="City, ST"
-                                            className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                            value={personalInfo.location}
-                                            onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="text-xs font-bold text-slate-400 uppercase mb-1 block">LinkedIn (Optional)</label>
-                                    <input
-                                        type="text"
-                                        placeholder="linkedin.com/in/..."
-                                        className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                                        value={personalInfo.linkedin}
-                                        onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} className="bg-slate-900 rounded-[2rem] p-8 text-white shadow-2xl">
-                            <h3 className="text-lg font-bold mb-4">Why use this?</h3>
-                            <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                                Our AI suggests precise keywords and structural shifts that ATS systems are looking for.
-                                Integrating these changes typically increases match scores by 30-40%.
-                            </p>
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-2 text-xs font-medium bg-white/10 p-3 rounded-xl border border-white/10">
-                                    <PiCheckCircleFill className="text-primary" />
-                                    ATS-Friendly Structure
-                                </div>
-                                <div className="flex items-center gap-2 text-xs font-medium bg-white/10 p-3 rounded-xl border border-white/10">
-                                    <PiCheckCircleFill className="text-primary" />
-                                    Keyword Optimized
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* Main: Content Preview */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <motion.div variants={itemVariants} className="space-y-6">
-                            <div className="flex items-center justify-between">
-                                <h2 className="text-2xl font-black text-slate-900">Optimization Preview</h2>
-                                <div className="text-xs text-slate-400 italic font-medium">This is how your optimized resume will look</div>
+            <div className="flex flex-1 overflow-hidden">
+                {/* Left Panel - Editor Content */}
+                <div className="w-[480px] border-r border-slate-200 bg-white overflow-y-auto custom-scrollbar flex flex-col shadow-sm">
+                    <div className="p-6 space-y-8">
+                        {/* Personal Info */}
+                        <section className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
+                            <div className="flex items-center gap-2 mb-4 text-slate-900">
+                                <PiUserCircleBold className="w-5 h-5 text-blue-500" />
+                                <h3 className="font-bold">Contact Details</h3>
                             </div>
 
-                            {/* Header Preview */}
-                            <div className="bg-white rounded-[2rem] p-10 shadow-xl border border-slate-100/50 text-center space-y-3 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16" />
-                                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight relative">
-                                    {personalInfo.name || "YOUR NAME"}
-                                </h3>
-                                <p className="text-slate-500 text-sm font-semibold tracking-wide relative">
-                                    {[personalInfo.email, personalInfo.phone, personalInfo.location, personalInfo.linkedin]
-                                        .filter(Boolean)
-                                        .join(" • ") || "your.email@example.com • +0 000 000 0000 • City, ST"}
-                                </p>
-                            </div>
-
-                            {Object.entries(data.sections).map(([name, section]) => (
-                                <motion.div
-                                    key={name}
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="bg-white rounded-3xl p-8 shadow-lg border border-slate-100 space-y-6"
-                                >
-                                    <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-xs font-black uppercase tracking-widest text-primary bg-primary/10 px-3 py-1 rounded-full">
-                                                {name}
-                                            </span>
-                                        </div>
-                                        {section.updated && (
-                                            <button
-                                                onClick={() => handleApplyAI(name)}
-                                                className="flex items-center gap-2 text-[10px] font-bold text-primary hover:text-primary-dark uppercase tracking-tighter bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-full border border-primary/20 transition-all"
-                                            >
-                                                <PiSparkleBold className="w-3 h-3" />
-                                                Quick Apply AI
-                                            </button>
+                            {/* Profile Pic Upload */}
+                            <div className="mb-8 flex flex-col items-center gap-4">
+                                <div className="relative group">
+                                    <div className="w-28 h-28 rounded-full border-2 border-dashed border-slate-200 bg-white flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:border-blue-400 group-hover:bg-blue-50/30 group-hover:shadow-xl group-hover:shadow-blue-500/10">
+                                        {personalInfo.profilePic ? (
+                                            <img src={personalInfo.profilePic} alt="Profile" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                                        ) : (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <PiCameraBold className="w-8 h-8 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                            </div>
                                         )}
                                     </div>
 
-                                    <div className="grid lg:grid-cols-3 gap-6">
-                                        {/* Editor Column */}
-                                        <div className="lg:col-span-2 space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-[10px] font-black uppercase text-slate-400">Section Editor</p>
-                                                <span className="text-[10px] text-slate-300 italic">Self-editing encouraged</span>
+                                    {personalInfo.profilePic ? (
+                                        <button
+                                            onClick={handleRemoveImage}
+                                            className="absolute -top-1 -right-1 p-2 bg-white text-red-500 rounded-full shadow-lg hover:bg-red-50 transition-all hover:scale-110 z-10 border border-slate-100"
+                                            title="Remove image"
+                                        >
+                                            <PiTrashBold className="w-4 h-4" />
+                                        </button>
+                                    ) : (
+                                        <label className="absolute inset-0 cursor-pointer">
+                                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} />
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="bg-blue-600 text-white text-[10px] font-bold px-3 py-1.5 rounded-full shadow-lg">Upload Photo</span>
                                             </div>
-                                            <textarea
-                                                className="w-full h-48 p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-primary/20 focus:ring-4 focus:ring-primary/5 outline-none transition-all text-sm text-slate-700 leading-relaxed font-medium resize-none"
-                                                value={editedContent[name] || ""}
-                                                onChange={(e) => setEditedContent(prev => ({ ...prev, [name]: e.target.value }))}
-                                                placeholder={`Enter your ${name} content here...`}
-                                            />
-                                        </div>
-
-                                        {/* AI Reference Column */}
-                                        <div className="space-y-4">
-                                            {section.suggestion && (
-                                                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100/50 space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <PiInfoFill className="text-amber-500 w-3 h-3" />
-                                                        <p className="text-[10px] font-black uppercase text-amber-600">AI Strategy</p>
-                                                    </div>
-                                                    <p className="text-[11px] text-amber-700/80 leading-relaxed font-medium">
-                                                        {section.suggestion}
-                                                    </p>
-                                                </div>
-                                            )}
-
-                                            {section.updated && (
-                                                <div className="p-4 bg-primary/5 rounded-2xl border border-primary/10 space-y-2">
-                                                    <div className="flex items-center gap-2">
-                                                        <PiMagicWandFill className="text-primary w-3 h-3" />
-                                                        <p className="text-[10px] font-black uppercase text-primary">AI Version</p>
-                                                    </div>
-                                                    <p className="text-[11px] text-slate-600 leading-relaxed italic">
-                                                        {section.updated.length > 150 ? section.updated.substring(0, 150) + "..." : section.updated}
-                                                    </p>
-                                                    <button
-                                                        onClick={() => {
-                                                            navigator.clipboard.writeText(section.updated);
-                                                        }}
-                                                        className="text-[9px] font-bold text-primary hover:underline"
-                                                    >
-                                                        Copy to Clipboard
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
+                                        </label>
+                                    )}
+                                </div>
+                                {!personalInfo.profilePic && (
+                                    <div className="text-center">
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Profile Photo</span>
+                                        <p className="text-[9px] text-slate-400 italic">Recommended: Square image</p>
                                     </div>
-                                </motion.div>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="grid gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Full Name"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.name}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Professional Title"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.title}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, title: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Email"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.email}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Phone"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.phone}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="LinkedIn URL"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.linkedin}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="GitHub URL"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.github}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, github: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <input
+                                        type="text"
+                                        placeholder="Location (City, Country)"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        value={personalInfo.location}
+                                        onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })}
+                                    />
+                                    <div className="relative">
+                                        <PiGlobeBold className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                                        <input
+                                            type="text"
+                                            placeholder="Languages"
+                                            className="w-full pl-9 p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                            value={personalInfo.languages}
+                                            onChange={(e) => setPersonalInfo({ ...personalInfo, languages: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* Resume Sections */}
+                        <section className="space-y-6">
+                            <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-2">
+                                <PiMagicWandBold className="w-5 h-5 text-purple-500" />
+                                <h3 className="font-bold">Content Editor</h3>
+                            </div>
+
+                            {Object.entries(editedContent).map(([name, content]) => (
+                                <div key={name} className="space-y-3">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{name}</span>
+                                            {data.sections[name]?.score && (
+                                                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                                                    {data.sections[name].score}/10
+                                                </span>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => handleApplyAI(name)}
+                                            className="text-[10px] font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-tight"
+                                        >
+                                            <PiMagicWandDuotone className="w-3 h-3" />
+                                            Apply AI
+                                        </button>
+                                    </div>
+                                    <textarea
+                                        className="w-full h-32 p-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none leading-relaxed bg-[#fcfcfc]"
+                                        value={content}
+                                        onChange={(e) => setEditedContent({ ...editedContent, [name]: e.target.value })}
+                                    />
+                                    {data.sections[name]?.suggestion && (
+                                        <div className="flex gap-2 items-start p-3 bg-slate-50 rounded-xl">
+                                            <PiInfoBold className="w-3 h-3 text-slate-400 mt-1" />
+                                            <p className="text-[11px] text-slate-500 leading-normal italic">
+                                                {data.sections[name].suggestion}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
                             ))}
-                        </motion.div>
-
-                        <motion.div variants={itemVariants} className="md:hidden">
-                            <Button
-                                size="xl"
-                                className="w-full bg-primary hover:bg-primary-dark"
-                                onClick={handleDownload}
-                                isLoading={isGenerating}
-                            >
-                                Download Optimized DOCX
-                            </Button>
-                        </motion.div>
+                        </section>
                     </div>
-                </motion.div>
-            </main>
+                </div>
 
-            <footer className="border-t border-gray-100 bg-slate-50/50 py-12 px-6 mt-12 text-center">
-                <p className="text-sm text-slate-400">
-                    JobFit AI Resume Optimizer • 100% Client-side • Your data never leaves your browser.
-                </p>
-            </footer>
+                {/* Right Panel - Live Preview */}
+                <div className="flex-1 bg-slate-100 p-8 flex flex-col items-center justify-center overflow-hidden relative">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-bold text-white uppercase tracking-widest">Real-time Preview</span>
+                    </div>
+
+                    <div className="w-full h-full max-w-4xl bg-white shadow-2xl rounded-2xl overflow-hidden border border-white">
+                        <PDFViewer width="100%" height="100%" showToolbar={false} className="border-none">
+                            <ResumePDF personalInfo={personalInfo} editedContent={editedContent} />
+                        </PDFViewer>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 };

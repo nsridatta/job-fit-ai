@@ -190,7 +190,7 @@ const Results: React.FC = () => {
             </div>
 
             {/* Optimization Advisor CTA - Only for Partial Matches */}
-            {data.jobMatchScore >= 40 && data.jobMatchScore < 55 && (
+            {data.jobMatchScore > 0 && data.jobMatchScore < 55 && (
               <motion.div
                 variants={itemVariants}
                 className="lg:col-span-3 bg-gradient-to-r from-primary/10 via-violet-50 to-blue-50 rounded-[2rem] p-8 border border-primary/20 shadow-xl relative overflow-hidden group mt-8"
@@ -325,7 +325,7 @@ const Results: React.FC = () => {
             <PiMagicWandDuotone className="text-primary w-5 h-5" />
             <span className="text-lg font-bold text-slate-900">JobFit AI</span>
           </div>
-          <p className="text-xs text-slate-400">© 2025 JobFit AI. Your data is never stored.</p>
+          <p className="text-xs text-slate-400">© 2026 JobFit AI. Your data is never stored.</p>
         </div>
       </footer>
     </div>

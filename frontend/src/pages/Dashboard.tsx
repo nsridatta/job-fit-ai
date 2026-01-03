@@ -324,7 +324,7 @@ const Dashboard: React.FC = () => {
             <Link to="/blog" className="hover:text-primary">Blog</Link>
             <Link to="/contact" className="hover:text-primary">Contact</Link>
           </div>
-          <p className="text-xs text-slate-400">© 2025 JobFit AI. All rights reserved.</p>
+          <p className="text-xs text-slate-400">© 2026 JobFit AI. All rights reserved.</p>
         </div>
       </footer>
     </div>

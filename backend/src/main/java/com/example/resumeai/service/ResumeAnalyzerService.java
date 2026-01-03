@@ -86,7 +86,10 @@ public class ResumeAnalyzerService {
                   "templateVerdict": "string"
                 }
 
-                CRITICAL: Every section MUST be a key inside the "sections" object. Do NOT put sections at the root of the JSON.
+                CRITICAL RULES:
+                1. Every section MUST be a key inside the "sections" object.
+                2. Return ONLY clean text. Do NOT use random symbols, markdown formatting inside values, or complex ASCII art.
+                3. For "Skills", provide a comma-separated list or clean newlines.
 
                 Resume Data:
                 %s
@@ -95,15 +98,43 @@ public class ResumeAnalyzerService {
 
         Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(combinedPrompt));
 
-        // Merge original content back into AI results
-        if (aiResponse.containsKey("sections")) {
-            Map<String, Map<String, Object>> aiSections = (Map<String, Map<String, Object>>) aiResponse.get("sections");
-            for (String name : resumeSections.keySet()) {
-                Map<String, Object> result = aiSections.getOrDefault(name, new HashMap<>());
-                result.put("original", resumeSections.get(name));
-                sectionResults.put(name, result);
+        // Post-process: Implement "Stamping" and conditional Original merge
+        int totalScore = 0;
+        if (aiResponse.containsKey("totalScore")) {
+            Object scoreObj = aiResponse.get("totalScore");
+            if (scoreObj instanceof Number) {
+                totalScore = ((Number) scoreObj).intValue();
             }
-            aiResponse.put("sections", sectionResults);
+        }
+
+        if (aiResponse.containsKey("sections")) {
+            Object sectionsObj = aiResponse.get("sections");
+            if (sectionsObj instanceof Map) {
+                Map<String, Map<String, Object>> aiSections = (Map<String, Map<String, Object>>) sectionsObj;
+                for (String name : resumeSections.keySet()) {
+                    Map<String, Object> result = aiSections.getOrDefault(name, new HashMap<>());
+
+                    // Always include original for frontend if score is mid-range
+                    if (totalScore >= 40 && totalScore <= 65) {
+                        result.put("original", resumeSections.get(name));
+                    }
+
+                    // Stamping: If score > 8, use original as updated
+                    int sectionScore = 0;
+                    if (result.containsKey("score")) {
+                        Object s = result.get("score");
+                        if (s instanceof Number)
+                            sectionScore = ((Number) s).intValue();
+                    }
+
+                    if (sectionScore >= 9) {
+                        result.put("updated", resumeSections.get(name));
+                    }
+
+                    sectionResults.put(name, result);
+                }
+                aiResponse.put("sections", sectionResults);
+            }
         }
 
         return aiResponse;
@@ -156,6 +187,8 @@ public class ResumeAnalyzerService {
                 CRITICAL RULES:
                 1. Every category (like Experience, Skills, etc.) MUST be a key inside the "sections" object. Do NOT put them at the root.
                 2. The "updated" field MUST contain ready-to-use resume text tailored to the Job Description.
+                3. Return ONLY clean text. Do NOT use random symbols, markdown formatting inside values, or complex ASCII art.
+                4. For "Skills", provide a comma-separated list or clean newlines.
 
                 Resume Data:
                 %s
@@ -167,14 +200,39 @@ public class ResumeAnalyzerService {
 
         Map<String, Object> aiResponse = retryTemplate.execute(context -> callOpenRouterAi(prompt));
 
-        // Merge original content back into AI results
+        // Post-process: Implement "Stamping" and conditional Original merge
+        int matchScore = 0;
+        if (aiResponse.containsKey("jobMatchScore")) {
+            Object scoreObj = aiResponse.get("jobMatchScore");
+            if (scoreObj instanceof Number) {
+                matchScore = ((Number) scoreObj).intValue();
+            }
+        }
+
         if (aiResponse.containsKey("sections")) {
             Object sectionsObj = aiResponse.get("sections");
             if (sectionsObj instanceof Map) {
                 Map<String, Map<String, Object>> aiSections = (Map<String, Map<String, Object>>) sectionsObj;
                 for (String name : resumeSections.keySet()) {
                     Map<String, Object> result = aiSections.getOrDefault(name, new HashMap<>());
-                    result.put("original", resumeSections.get(name));
+
+                    // Always include original for frontend if score is mid-range
+                    if (matchScore >= 40 && matchScore <= 65) {
+                        result.put("original", resumeSections.get(name));
+                    }
+
+                    // Stamping: If score > 8, use original as updated
+                    int sectionScore = 0;
+                    if (result.containsKey("score")) {
+                        Object s = result.get("score");
+                        if (s instanceof Number)
+                            sectionScore = ((Number) s).intValue();
+                    }
+
+                    if (sectionScore >= 9) {
+                        result.put("updated", resumeSections.get(name));
+                    }
+
                     sectionResults.put(name, result);
                 }
                 aiResponse.put("sections", sectionResults);
