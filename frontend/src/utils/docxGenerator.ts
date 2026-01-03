@@ -130,9 +130,9 @@ export const generateOptimizedDocx = async (
                                             new Paragraph({ text: "", spacing: { before: 400 } }),
 
                                             createSidebarHeader("Personal Info"),
-                                            createSidebarItem(personalInfo.phone || "9912500346"),
-                                            createSidebarItem(personalInfo.email || "nsridatta@gmail.com"),
-                                            createSidebarItem(personalInfo.location || "Hyderabad, India"),
+                                            createSidebarItem(personalInfo.phone),
+                                            createSidebarItem(personalInfo.email),
+                                            createSidebarItem(personalInfo.location),
 
                                             createSidebarHeader("Links"),
                                             createSidebarItem(personalInfo.linkedin ? "LinkedIn" : ""),
@@ -164,7 +164,7 @@ export const generateOptimizedDocx = async (
                                             new Paragraph({
                                                 children: [
                                                     new TextRun({
-                                                        text: personalInfo.name || "SRI DATTA NELLUTLA",
+                                                        text: personalInfo.name,
                                                         bold: true,
                                                         size: 48,
                                                         color: "111111",
@@ -174,7 +174,7 @@ export const generateOptimizedDocx = async (
                                             new Paragraph({
                                                 children: [
                                                     new TextRun({
-                                                        text: personalInfo.title || "Senior Full Stack Developer",
+                                                        text: personalInfo.title,
                                                         size: 28,
                                                         color: "444444",
                                                     }),

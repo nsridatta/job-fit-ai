@@ -21,7 +21,7 @@
 
 | Feature | Description |
 |---------|-------------|
-| 📄 **Resume Upload** | Drag-and-drop or click to upload PDF, DOC, DOCX files (max 5MB) |
+| 📄 **Resume Upload** | Drag-and-drop or click to upload PDF files (max 5MB) |
 | 🤖 **AI Analysis** | Powered by OpenRouter/OpenAI for intelligent resume scoring |
 | 📊 **Section Scores** | Get detailed scores for Experience, Skills, Education, and more |
 | 🔑 **Keyword Matching** | Identifies missing keywords from the job description |
@@ -140,7 +140,7 @@ spring:
       base-url: https://openrouter.ai/api/v1
       chat:
         options:
-          model: deepseek/deepseek-chat-v3-0324
+          model: nvidia/nemotron-3-nano-30b-a3b:free
           temperature: 0.5
 
 server:
@@ -165,7 +165,7 @@ proxy: {
 - [x] Basic resume upload and analysis
 - [x] AI-powered scoring with OpenRouter
 - [x] Modern, responsive UI design
-- [ ] Apache POI for robust DOCX parsing
+- [ ] React Render PDF for robust PDF parsing and live review
 - [ ] OAuth login (Google, LinkedIn)
 - [ ] User accounts and history
 - [ ] Rate limiting and caching
@@ -197,7 +197,7 @@ This project is open source and available under the [MIT License](LICENSE).
 - [Tailwind CSS](https://tailwindcss.com/) for styling utilities
 - [Framer Motion](https://www.framer.com/motion/) for animations
 - [Phosphor Icons](https://phosphoricons.com/) for beautiful icons
-- [Enhancv](https://enhancv.com/) for design inspiration
+- [React Render PDF](https://react-pdf.org/) for PDF parsing and live review
 
 ---
 
