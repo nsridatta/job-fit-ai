@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import {
     PiArrowLeftBold,
@@ -9,8 +9,11 @@ import {
     PiMagicWandDuotone,
     PiCameraBold,
     PiTrashBold,
-    PiGlobeBold
+    PiGlobeBold,
+    PiListBulletsBold
 } from "react-icons/pi";
+import ReactQuill from 'react-quill-new';
+import 'react-quill-new/dist/quill.snow.css';
 import { Button } from "../components/ui/Button";
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import ResumePDF from '../components/ResumePDF';
@@ -29,6 +32,61 @@ interface ResultsData {
     missingKeywords: string[];
     templateVerdict: string;
 }
+
+const SectionEditor: React.FC<{
+    name: string;
+    content: string;
+    modules: any;
+    formats: any;
+    onChange: (val: string) => void;
+    suggestion?: string;
+    onApplyAI: () => void;
+    score?: number;
+}> = React.memo(({ name, content, modules, formats, onChange, suggestion, onApplyAI, score }) => {
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{name}</span>
+                    {score && (
+                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                            {score}/10
+                        </span>
+                    )}
+                </div>
+                <button
+                    onClick={onApplyAI}
+                    className="text-[10px] font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-tight"
+                >
+                    <PiMagicWandDuotone className="w-3 h-3" />
+                    Apply AI
+                </button>
+            </div>
+            <div className="rounded-xl border border-slate-200 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+                <ReactQuill
+                    theme="snow"
+                    value={content}
+                    onChange={(val) => {
+                        if (val !== content) {
+                            onChange(val);
+                        }
+                    }}
+                    modules={modules}
+                    formats={formats}
+                    className="resume-quill"
+                />
+            </div>
+            {suggestion && (
+                <div className="flex gap-2 items-start p-3 bg-slate-50 rounded-xl">
+                    <PiInfoBold className="w-3 h-3 text-slate-400 mt-1" />
+                    <p className="text-[11px] text-slate-500 leading-normal italic">
+                        {suggestion}
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+});
 
 const OptimizationHub: React.FC = () => {
     const location = useLocation();
@@ -52,18 +110,36 @@ const OptimizationHub: React.FC = () => {
     useEffect(() => {
         if (data?.sections) {
             const initial: { [key: string]: string } = {};
-            Object.entries(data.sections).forEach(([name, sec]) => {
-                // If original exists (40-65 range), club them if they are different
+
+            // Helper to get processed text for a section
+            const getProcessedText = (sec: SectionData) => {
                 if (sec.original && sec.original !== "No relevant section found.") {
                     if (sec.updated && sec.updated !== sec.original) {
-                        initial[name] = `${sec.original}\n\n--- AI RECOMMENDATION ---\n${sec.updated}`.trim();
-                    } else {
-                        initial[name] = sec.original.trim();
+                        return `${sec.original}\n\n--- AI RECOMMENDATION ---\n${sec.updated}`.trim();
                     }
-                } else {
-                    // High score (>8 section) or Low score/No original provided
-                    initial[name] = sec.updated || sec.original || "";
+                    return sec.original.trim();
                 }
+                return sec.updated || sec.original || "";
+            };
+
+            const expKey = Object.keys(data.sections).find(k => k.toUpperCase() === 'EXPERIENCE' || k.toUpperCase() === 'WORK EXPERIENCE');
+            const projKey = Object.keys(data.sections).find(k => k.toUpperCase() === 'PROJECTS');
+
+            Object.entries(data.sections).forEach(([name, sec]) => {
+                // Skip project key if we are merging it into experience
+                if (projKey && name === projKey) return;
+
+                let content = getProcessedText(sec);
+
+                // If this is the experience section and projects exist, merge them
+                if (expKey && name === expKey && projKey) {
+                    const projContent = getProcessedText(data.sections[projKey]);
+                    if (projContent) {
+                        content = `${content}\n\n${projContent}`.trim();
+                    }
+                }
+
+                initial[name] = content;
             });
             setEditedContent(initial);
         }
@@ -103,6 +179,30 @@ const OptimizationHub: React.FC = () => {
     const handleRemoveImage = () => {
         setPersonalInfo(prev => ({ ...prev, profilePic: "" }));
     };
+
+    const quillModules = React.useMemo(() => ({
+        toolbar: [
+            ['bold', 'italic', 'underline', 'strike'],
+            ['blockquote', 'code-block'],
+            [{ header: 1 }, { header: 2 }],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            ['link'],
+            ['clean'],
+        ],
+    }), []);
+
+    const quillFormats = React.useMemo(() => [
+        'header',
+        'bold',
+        'italic',
+        'underline',
+        'strike',
+        'blockquote',
+        'list',
+        'link',
+        'code-block',
+    ], []);
+    // Removed problematic global quillRef
 
     return (
         <div className="min-h-screen bg-[#fafafa] flex flex-col h-screen overflow-hidden">
@@ -263,38 +363,17 @@ const OptimizationHub: React.FC = () => {
                             </div>
 
                             {Object.entries(editedContent).map(([name, content]) => (
-                                <div key={name} className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{name}</span>
-                                            {data.sections[name]?.score && (
-                                                <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
-                                                    {data.sections[name].score}/10
-                                                </span>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={() => handleApplyAI(name)}
-                                            className="text-[10px] font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition-colors uppercase tracking-tight"
-                                        >
-                                            <PiMagicWandDuotone className="w-3 h-3" />
-                                            Apply AI
-                                        </button>
-                                    </div>
-                                    <textarea
-                                        className="w-full h-32 p-3 text-sm rounded-xl border border-slate-200 focus:ring-2 focus:ring-blue-500/20 outline-none transition-all resize-none leading-relaxed bg-[#fcfcfc]"
-                                        value={content}
-                                        onChange={(e) => setEditedContent({ ...editedContent, [name]: e.target.value })}
-                                    />
-                                    {data.sections[name]?.suggestion && (
-                                        <div className="flex gap-2 items-start p-3 bg-slate-50 rounded-xl">
-                                            <PiInfoBold className="w-3 h-3 text-slate-400 mt-1" />
-                                            <p className="text-[11px] text-slate-500 leading-normal italic">
-                                                {data.sections[name].suggestion}
-                                            </p>
-                                        </div>
-                                    )}
-                                </div>
+                                <SectionEditor
+                                    key={name}
+                                    name={name}
+                                    content={content}
+                                    modules={quillModules}
+                                    formats={quillFormats}
+                                    onChange={(val) => setEditedContent(prev => ({ ...prev, [name]: val }))}
+                                    suggestion={data.sections[name]?.suggestion}
+                                    onApplyAI={() => handleApplyAI(name)}
+                                    score={data.sections[name]?.score}
+                                />
                             ))}
                         </section>
                     </div>

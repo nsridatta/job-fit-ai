@@ -23,19 +23,21 @@
 |---------|-------------|
 | 📄 **Resume Upload** | Drag-and-drop or click to upload PDF files (max 5MB) |
 | 🤖 **AI Analysis** | Powered by OpenRouter/OpenAI for intelligent resume scoring |
+| ✍️ **Rich Text Editor** | Professional editor with Bold, Italic, Lists, and Headers for manual optimization |
+| 🖼️ **Live PDF Preview** | Real-time PDF generation and preview as you edit your resume |
+| 👤 **Profile Picture** | Upload and manage professional profile pictures for your resume |
+| 💼 **Unified Experience** | Merged Work Experience and Projects for a professional, ATS-friendly layout |
 | 📊 **Section Scores** | Get detailed scores for Experience, Skills, Education, and more |
-| 🔑 **Keyword Matching** | Identifies missing keywords from the job description |
 | 🛡️ **ATS Compatibility** | Template verdict for Applicant Tracking System optimization |
-| 🔒 **Privacy First** | Your data is processed but never stored |
 
 ---
 
-<!-- ## 🖼️ Screenshots
+## 🖼️ Screenshots
 
 <div align="center">
-<img src="https://via.placeholder.com/800x450?text=Dashboard+Screenshot" alt="Dashboard" width="80%"/>
-<p><em>Modern, professional dashboard with real-time analysis</em></p>
-</div> -->
+<img src="./frontend/public/project.PNG" alt="Optimizer Hub" width="90%"/>
+<p><em>Optimizer Hub: Rich Text Editor with Live PDF Preview</em></p>
+</div>
 
 ---
 
@@ -43,17 +45,19 @@
 
 ### Frontend
 - **Framework:** React 19 with TypeScript
-- **Styling:** Tailwind CSS 3.4
-- **Animations:** Framer Motion
+- **State & Logic:** Functional components with React Hooks
+- **Editor:** `react-quill-new` for rich text editing
+- **PDF Engine:** `@react-pdf/renderer` for dynamic PDF generation
+- **Styling:** Vanilla CSS & Tailwind CSS 3.4
 - **Icons:** Phosphor Icons (react-icons/pi)
 - **Build Tool:** Vite 7
-- **UI Components:** Custom design system with Chakra UI
 
 ### Backend
 - **Framework:** Spring Boot 3.4
 - **Language:** Java 17+
-- **AI Integration:** OpenRouter API (OpenAI-compatible)
-- **File Parsing:** Apache PDFBox for PDF extraction
+- **AI Integration:** Spring AI with OpenRouter API
+- **Documentation:** Swagger/OpenAPI UI (`/swagger-ui/index.html`)
+- **File Parsing:** Apache PDFBox
 
 ---
 
@@ -62,7 +66,7 @@
 ### Prerequisites
 - **Node.js** 18+ and npm
 - **Java** 17+ and Maven
-- **OpenRouter API Key** (or OpenAI API Key)
+- **OpenRouter API Key**
 
 ### 1. Clone the Repository
 ```bash
@@ -73,26 +77,19 @@ cd job-fit-ai
 ### 2. Backend Setup
 ```bash
 cd backend
-
-# Set your API key (create .env file or set environment variable)
+# Set your API key in environment variables
 export OPENROUTER_API_KEY=your_api_key_here
-
-# Run the Spring Boot server
 mvn spring-boot:run
 ```
-The backend will start on `http://localhost:8080`.
+Available at `http://localhost:8080`. Explore the API at `/swagger-ui/index.html`.
 
 ### 3. Frontend Setup
 ```bash
 cd frontend
-
-# Install dependencies
 npm install
-
-# Start development server
 npm run dev
 ```
-The frontend will start on `http://localhost:5173` and proxy API requests to the backend.
+Available at `http://localhost:5173`.
 
 ---
 
@@ -100,25 +97,23 @@ The frontend will start on `http://localhost:5173` and proxy API requests to the
 
 ```
 resume-ai-starter/
-├── backend/                    # Spring Boot application
-│   ├── src/main/java/
-│   │   └── com/jobfit/ai/
-│   │       ├── controller/     # REST API endpoints
-│   │       ├── service/        # Business logic & AI integration
-│   │       └── model/          # Data models
-│   └── src/main/resources/
-│       └── application.yml     # Configuration
+├── backend/                    
+│   ├── src/main/java/com/example/resumeai/
+│   │   ├── controller/     # REST API (Analyze, Swagger)
+│   │   ├── service/        # AI Service logic
+│   │   └── model/          # DTOs and Data models
+│   └── src/main/resources/application.yml
 │
-├── frontend/                   # React application
+├── frontend/                   
 │   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   │   └── ui/             # Design system (Button, Card, Input, etc.)
-│   │   ├── pages/              # Page components (Dashboard, Results)
-│   │   └── api.ts              # API client
-│   ├── index.html
+│   │   ├── components/     
+│   │   │   ├── ResumePDF.tsx   # Custom HTML-to-PDF engine
+│   │   │   └── ui/             # Design system components
+│   │   ├── pages/              
+│   │   │   ├── OptimizationHub.tsx # The main editor & preview hub
+│   │   │   └── Dashboard.tsx       # File upload & analysis entry
+│   │   └── index.css           # Global styles & Quill overrides
 │   └── vite.config.ts
-│
-└── README.md
 ```
 
 ---
@@ -164,12 +159,13 @@ proxy: {
 
 - [x] Basic resume upload and analysis
 - [x] AI-powered scoring with OpenRouter
-- [x] Modern, responsive UI design
-- [ ] React Render PDF for robust PDF parsing and live review
+- [x] Rich Text Editor integration
+- [x] Live PDF Preview engine
+- [x] Profile picture support
+- [x] ATS Template compatibility checks
 - [ ] OAuth login (Google, LinkedIn)
-- [ ] User accounts and history
-- [ ] Rate limiting and caching
-- [ ] Database integration for scaling
+- [ ] User accounts and history tracking
+- [ ] Multi-template PDF support
 
 ---
 

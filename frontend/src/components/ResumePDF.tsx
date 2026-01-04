@@ -134,8 +134,91 @@ const styles = StyleSheet.create({
         fontSize: 8,
         color: '#999999',
         fontStyle: 'italic',
+    },
+    bold: {
+        fontWeight: 'bold',
+    },
+    italic: {
+        fontStyle: 'italic',
+    },
+    underline: {
+        textDecoration: 'underline',
+    },
+    strike: {
+        textDecoration: 'line-through',
+    },
+    header1: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        marginTop: 10,
+        marginBottom: 5,
+        color: '#111111',
+    },
+    header2: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginTop: 8,
+        marginBottom: 4,
+        color: '#222222',
+    },
+    blockquote: {
+        borderLeftWidth: 2,
+        borderLeftColor: '#eeeeee',
+        paddingLeft: 10,
+        fontStyle: 'italic',
+        marginVertical: 5,
+    },
+    code: {
+        fontFamily: 'Courier',
+        backgroundColor: '#f5f5f5',
+        padding: 5,
+        fontSize: 9,
+    },
+    link: {
+        color: '#0066cc',
+        textDecoration: 'underline',
+    },
+    listItem: {
+        flexDirection: 'row',
+        marginBottom: 2,
+        paddingLeft: 10,
+    },
+    listBullet: {
+        width: 3,
+        height: 3,
+        backgroundColor: '#333333',
+        borderRadius: 1.5,
+        marginTop: 4,
+        marginRight: 6,
+    },
+    listNumber: {
+        fontSize: 9,
+        marginRight: 5,
+        minWidth: 15,
+    },
+    listContent: {
+        flex: 1,
     }
 });
+
+const decodeEntities = (text: string) => {
+    if (!text) return '';
+    return text
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\u00A0/g, ' '); // Also handle Unicode non-breaking space
+};
+
+const stripTags = (html: string) => {
+    if (!html) return '';
+    // Remove all HTML tags and decode entities
+    const withoutTags = html.replace(/<[^>]*>?/gm, '');
+    return decodeEntities(withoutTags).trim();
+};
 
 interface ResumePDFProps {
     personalInfo: {
@@ -151,6 +234,110 @@ interface ResumePDFProps {
     };
     editedContent: { [key: string]: string };
 }
+
+const RichText: React.FC<{ html: string; style?: any }> = ({ html, style }) => {
+    if (!html) return null;
+
+    const parseContent = (text: string) => {
+        let clean = text.replace(/<p><br><\/p>/g, '\n');
+
+        // Split by major blocks
+        const blocks = clean.split(/(<\/h1>|<\/h2>|<\/p>|<\/li>|<\/blockquote>|<\/pre>|<\/ul>|<\/ol>|<br\s*\/?>)/gi);
+
+        // Track list numbering
+        let listCounter = 0;
+        let inOrderedList = false;
+
+        return blocks.map((block, idx) => {
+            if (!block.trim() && !block.includes('\n')) return null;
+
+            // List handling
+            if (block.includes('<ol')) { inOrderedList = true; listCounter = 0; return null; }
+            if (block.includes('</ol')) { inOrderedList = false; return null; }
+            if (block.includes('<ul')) { inOrderedList = false; return null; }
+
+            if (block.includes('<li')) {
+                const content = block.replace(/<li[^>]*>/gi, '').replace(/<\/li>/gi, '');
+                listCounter++;
+                return (
+                    <View key={idx} style={styles.listItem}>
+                        {inOrderedList ? (
+                            <Text style={styles.listNumber}>{listCounter}.</Text>
+                        ) : (
+                            <View style={styles.listBullet} />
+                        )}
+                        <Text style={[styles.contentItem, styles.listContent, style]}>
+                            {renderStyledText(content)}
+                        </Text>
+                    </View>
+                );
+            }
+
+            // Header handling
+            if (block.includes('<h1')) {
+                const content = block.replace(/<h1[^>]*>/gi, '').replace(/<\/h1>/gi, '');
+                return <Text key={idx} style={styles.header1}>{renderStyledText(content)}</Text>;
+            }
+            if (block.includes('<h2')) {
+                const content = block.replace(/<h2[^>]*>/gi, '').replace(/<\/h2>/gi, '');
+                return <Text key={idx} style={styles.header2}>{renderStyledText(content)}</Text>;
+            }
+
+            // Blockquote handling
+            if (block.includes('<blockquote')) {
+                const content = block.replace(/<blockquote[^>]*>/gi, '').replace(/<\/blockquote>/gi, '');
+                return <View key={idx} style={styles.blockquote}>{renderStyledText(content)}</View>;
+            }
+
+            // Pre/Code handling
+            if (block.includes('<pre')) {
+                const content = block.replace(/<pre[^>]*>/gi, '').replace(/<\/pre>/gi, '').replace(/<code[^>]*>/gi, '').replace(/<\/code>/gi, '');
+                return <Text key={idx} style={styles.code}>{decodeEntities(content)}</Text>;
+            }
+
+            // Regular paragraph/block
+            const content = block.replace(/<p[^>]*>/gi, '').replace(/<\/p>/gi, '');
+            if (!content.trim()) return null;
+
+            return (
+                <Text key={idx} style={[styles.contentItem, style]}>
+                    {renderStyledText(content)}
+                </Text>
+            );
+        }).filter(Boolean);
+    };
+
+    const renderStyledText = (text: string) => {
+        const parts = text.split(/(<strong[^>]*>.*?<\/strong>|<b[^>]*>.*?<\/b>|<em[^>]*>.*?<\/em>|<i[^>]*>.*?<\/i>|<u[^>]*>.*?<\/u>|<s[^>]*>.*?<\/s>|<a[^>]*>.*?<\/a>)/gi);
+
+        return parts.map((part, i) => {
+            if (!part) return null;
+
+            // Extract styling if it's a styled part
+            if (part.match(/<(strong|b)[^>]*>/i)) {
+                return <Text key={i} style={styles.bold}>{decodeEntities(part.replace(/<[^>]+>/g, ''))}</Text>;
+            }
+            if (part.match(/<(em|i)[^>]*>/i)) {
+                return <Text key={i} style={styles.italic}>{decodeEntities(part.replace(/<[^>]+>/g, ''))}</Text>;
+            }
+            if (part.match(/<u[^>]*>/i)) {
+                return <Text key={i} style={styles.underline}>{decodeEntities(part.replace(/<[^>]+>/g, ''))}</Text>;
+            }
+            if (part.match(/<s[^>]*>/i)) {
+                return <Text key={i} style={styles.strike}>{decodeEntities(part.replace(/<[^>]+>/g, ''))}</Text>;
+            }
+            if (part.match(/<a[^>]*>/i)) {
+                return <Text key={i} style={styles.link}>{decodeEntities(part.replace(/<[^>]+>/g, ''))}</Text>;
+            }
+
+            // Plain text part: strip any remaining tags (shouldn't be any but safety first) and decode
+            const plain = decodeEntities(part.replace(/<[^>]+>/g, ''));
+            return plain || null;
+        });
+    };
+
+    return <View>{parseContent(html)}</View>;
+};
 
 const ResumePDF: React.FC<ResumePDFProps> = ({ personalInfo, editedContent }) => (
     <Document>
@@ -179,7 +366,7 @@ const ResumePDF: React.FC<ResumePDFProps> = ({ personalInfo, editedContent }) =>
                 )}
 
                 <Text style={styles.sidebarHeader}>Skills</Text>
-                {(editedContent["Skills"] || editedContent["skills"] || "")
+                {stripTags(editedContent["Skills"] || editedContent["skills"] || "")
                     .split(/[,\n]/)
                     .map(s => s.trim())
                     .filter(Boolean)
@@ -208,25 +395,34 @@ const ResumePDF: React.FC<ResumePDFProps> = ({ personalInfo, editedContent }) =>
                 <Text style={styles.name}>{personalInfo.name}</Text>
                 <Text style={styles.title}>{personalInfo.title}</Text>
 
-                <Text style={styles.summary}>
-                    {editedContent["Summary"] || editedContent["summary"] || ""}
-                </Text>
+                <View style={styles.summary}>
+                    <RichText html={editedContent["Summary"] || editedContent["summary"] || ""} />
+                </View>
 
                 <Text style={styles.sectionHeader}>Work Experience</Text>
                 {Object.entries(editedContent)
-                    .filter(([name]) => !["SUMMARY", "SKILLS", "CONTACT"].includes(name.toUpperCase()))
-                    .map(([name, content], i) => {
-                        // Extract dates if they exist in the name or content (heuristic)
-                        // For a real app, you might want more structured data
-                        return (
-                            <View key={i} wrap={false}>
-                                <View style={styles.experienceHeader}>
-                                    <Text style={styles.jobTitle}>{name.toUpperCase()}</Text>
-                                </View>
-                                <Text style={styles.contentItem}>{content}</Text>
-                            </View>
-                        );
-                    })}
+                    .filter(([name]) => {
+                        const n = name.toUpperCase();
+                        return n === "EXPERIENCE" || n === "WORK EXPERIENCE";
+                    })
+                    .map(([_, content], i) => (
+                        <View key={i} style={{ marginBottom: 15 }}>
+                            <RichText html={content} />
+                        </View>
+                    ))}
+
+                {/* Render any other additional sections (Education, Certifications, etc. if not already in sidebar) */}
+                {Object.entries(editedContent)
+                    .filter(([name]) => {
+                        const n = name.toUpperCase();
+                        return !["SUMMARY", "SKILLS", "CONTACT", "EXPERIENCE", "WORK EXPERIENCE", "PROJECTS"].includes(n);
+                    })
+                    .map(([name, content], i) => (
+                        <View key={i} wrap={false} style={{ marginBottom: 15 }}>
+                            <Text style={styles.sectionHeader}>{name.toUpperCase()}</Text>
+                            <RichText html={content} />
+                        </View>
+                    ))}
 
                 <Text style={styles.footer}>Generated by JobFit AI Optimizer</Text>
             </View>
