@@ -344,50 +344,56 @@ const ResumePDF: React.FC<ResumePDFProps> = ({ personalInfo, editedContent }) =>
         <Page size="A4" style={styles.page}>
             {/* Sidebar */}
             <View style={styles.sidebar} fixed>
-                {personalInfo.profilePic && (
-                    <View style={styles.profileContainer}>
-                        <Image src={personalInfo.profilePic} style={styles.profilePic} />
-                    </View>
-                )}
+                <View render={({ pageNumber }) => (
+                    pageNumber === 1 ? (
+                        <>
+                            {personalInfo.profilePic && (
+                                <View style={styles.profileContainer}>
+                                    <Image src={personalInfo.profilePic} style={styles.profilePic} />
+                                </View>
+                            )}
 
-                <View style={{ marginTop: personalInfo.profilePic ? 0 : 20 }} />
+                            <View style={{ marginTop: personalInfo.profilePic ? 0 : 20 }} />
 
-                <Text style={styles.sidebarHeader}>Personal Info</Text>
-                <Text style={styles.sidebarItem}>{personalInfo.phone}</Text>
-                <Text style={styles.sidebarItem}>{personalInfo.email}</Text>
-                <Text style={styles.sidebarItem}>{personalInfo.location}</Text>
+                            <Text style={styles.sidebarHeader}>Personal Info</Text>
+                            <Text style={styles.sidebarItem}>{personalInfo.phone}</Text>
+                            <Text style={styles.sidebarItem}>{personalInfo.email}</Text>
+                            <Text style={styles.sidebarItem}>{personalInfo.location}</Text>
 
-                <Text style={styles.sidebarHeader}>Links</Text>
-                {personalInfo.linkedin && (
-                    <Text style={styles.sidebarLink}>{personalInfo.linkedin.includes('http') ? 'LinkedIn' : personalInfo.linkedin}</Text>
-                )}
-                {personalInfo.github && (
-                    <Text style={styles.sidebarLink}>{personalInfo.github.includes('http') ? 'GitHub' : personalInfo.github}</Text>
-                )}
+                            <Text style={styles.sidebarHeader}>Links</Text>
+                            {personalInfo.linkedin && (
+                                <Text style={styles.sidebarLink}>{personalInfo.linkedin.includes('http') ? 'LinkedIn' : personalInfo.linkedin}</Text>
+                            )}
+                            {personalInfo.github && (
+                                <Text style={styles.sidebarLink}>{personalInfo.github.includes('http') ? 'GitHub' : personalInfo.github}</Text>
+                            )}
 
-                <Text style={styles.sidebarHeader}>Skills</Text>
-                {stripTags(editedContent["Skills"] || editedContent["skills"] || "")
-                    .split(/[,\n]/)
-                    .map(s => s.trim())
-                    .filter(Boolean)
-                    .map((skill, i) => (
-                        <View key={i} style={styles.bulletRow}>
-                            <View style={styles.bullet} />
-                            <Text style={styles.bulletText}>{skill}</Text>
-                        </View>
-                    ))}
+                            <Text style={styles.sidebarHeader}>Skills</Text>
+                            {stripTags(editedContent["Skills"] || editedContent["skills"] || "")
+                                .split(/[,\n]/)
+                                .map(s => s.trim())
+                                .filter(Boolean)
+                                .map((skill, i) => (
+                                    <View key={i} style={styles.bulletRow}>
+                                        <View style={styles.bullet} />
+                                        <Text style={styles.bulletText}>{skill}</Text>
+                                    </View>
+                                ))}
 
-                {personalInfo.languages && (
-                    <>
-                        <Text style={styles.sidebarHeader}>Languages</Text>
-                        {personalInfo.languages.split(/[,\n]/).map(l => l.trim()).filter(Boolean).map((lang, i) => (
-                            <View key={i} style={styles.bulletRow}>
-                                <View style={styles.bullet} />
-                                <Text style={styles.bulletText}>{lang}</Text>
-                            </View>
-                        ))}
-                    </>
-                )}
+                            {personalInfo.languages && (
+                                <>
+                                    <Text style={styles.sidebarHeader}>Languages</Text>
+                                    {personalInfo.languages.split(/[,\n]/).map(l => l.trim()).filter(Boolean).map((lang, i) => (
+                                        <View key={i} style={styles.bulletRow}>
+                                            <View style={styles.bullet} />
+                                            <Text style={styles.bulletText}>{lang}</Text>
+                                        </View>
+                                    ))}
+                                </>
+                            )}
+                        </>
+                    ) : null
+                )} />
             </View>
 
             {/* Main Content */}

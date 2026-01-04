@@ -42,10 +42,24 @@ public class AnalyzeController {
             @RequestParam("jobDescription") String jobDescription) throws IOException {
 
         String resumeText = extractPdfText(resumeFile);
-        Map<String, Object> result =
-                resumeAnalyzerService.analyzeResumeForJob(resumeText, jobDescription);
+        Map<String, Object> result = resumeAnalyzerService.analyzeResumeForJob(resumeText, jobDescription);
 
         return ResponseEntity.ok(result);
+    }
+
+    @Operation(summary = "Generate cover letter")
+    @PostMapping(value = "/cover-letter", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> generateCoverLetter(
+            @RequestPart("resumeFile") MultipartFile resumeFile,
+            @RequestParam("jobDescription") String jobDescription) throws IOException {
+        String resumeText = extractPdfText(resumeFile);
+        return ResponseEntity.ok(resumeAnalyzerService.generateCoverLetter(resumeText, jobDescription));
+    }
+
+    @Operation(summary = "Generate learning roadmap")
+    @PostMapping("/roadmap")
+    public ResponseEntity<Map<String, Object>> generateRoadmap(@RequestParam("missingSkills") String missingSkills) {
+        return ResponseEntity.ok(resumeAnalyzerService.generateLearningRoadmap(missingSkills));
     }
 
     private String extractPdfText(MultipartFile file) throws IOException {
@@ -53,6 +67,6 @@ public class AnalyzeController {
             PDFTextStripper stripper = new PDFTextStripper();
             return stripper.getText(document);
         }
-    }    
+    }
 
 }

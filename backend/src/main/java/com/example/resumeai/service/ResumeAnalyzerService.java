@@ -245,6 +245,82 @@ public class ResumeAnalyzerService {
         return aiResponse;
     }
 
+    /**
+     * Generate a matching cover letter based on resume and job description
+     */
+    public Map<String, Object> generateCoverLetter(String resumeText, String jobDescription) {
+        if (demoMode) {
+            return Map.of("content", "Dear Hiring Manager,\n\nI am excited to apply for this position...");
+        }
+
+        String prompt = """
+                Generate a professional and compelling cover letter.
+                Use the following resume details and Job Description to tailor the content.
+                Return ONLY the cover letter text, no metadata.
+
+                Resume Data:
+                %s
+
+                Job Description:
+                %s
+                """
+                .formatted(resumeText, jobDescription);
+
+        // We use callOpenRouterAiRaw here because we only want plain text, not a JSON
+        // object
+        return callOpenRouterAiRaw(prompt);
+    }
+
+    /**
+     * Generate a 3-day roadmap for missing skills
+     */
+    public Map<String, Object> generateLearningRoadmap(String missingSkills) {
+        if (demoMode) {
+            return Map.of("content", "Day 1: Basics of " + missingSkills + "...");
+        }
+
+        String prompt = """
+                Create a high-impact, 3-day learning roadmap to acquire the following missing skills: %s.
+                Focus on the most critical concepts and practical application.
+                Return ONLY the roadmap text in a clean, professional format (markdown is okay).
+                """
+                .formatted(missingSkills);
+
+        return callOpenRouterAiRaw(prompt);
+    }
+
+    /** Helper to call OpenRouter for raw text content instead of structured JSON */
+    private Map<String, Object> callOpenRouterAiRaw(String prompt) {
+        LOG.info("Calling OpenRouter for raw content, demoMode={}", demoMode);
+        try {
+            String requestBody = mapper.writeValueAsString(Map.of(
+                    "model", model,
+                    "messages", new Object[] {
+                            Map.of("role", "system", "content",
+                                    "You are a professional career coach. Return ONLY the requested content."),
+                            Map.of("role", "user", "content", prompt)
+                    }));
+
+            Request request = new Request.Builder()
+                    .url("https://openrouter.ai/api/v1/chat/completions")
+                    .post(RequestBody.create(requestBody, JSON))
+                    .addHeader("Authorization", "Bearer " + apiKey)
+                    .build();
+
+            try (Response response = client.newCall(request).execute()) {
+                if (!response.isSuccessful())
+                    throw new IOException("Unexpected code: " + response);
+                String body = response.body().string();
+                JsonNode root = mapper.readTree(body);
+                String content = root.at("/choices/0/message/content").asText();
+                return Map.of("content", content);
+            }
+        } catch (Exception e) {
+            LOG.error("Error calling OpenRouter: {}", e.getMessage());
+            return Map.of("error", "Generation failed", "details", e.getMessage());
+        }
+    }
+
     /** Helper to call OpenRouter API (instead of OpenAI) */
     private Map<String, Object> callOpenRouterAi(String prompt) {
         LOG.info("Calling OpenRouter, demoMode={}", demoMode);
@@ -284,6 +360,17 @@ public class ResumeAnalyzerService {
 
                     // Extract content from OpenRouter's response (same as OpenAI)
                     String content = root.at("/choices/0/message/content").asText();
+
+                    // Cleanup common AI prefix/suffix like ```json or ```
+                    content = content.trim();
+                    if (content.startsWith("```json"))
+                        content = content.substring(7);
+                    if (content.startsWith("```"))
+                        content = content.substring(3);
+                    if (content.endsWith("```"))
+                        content = content.substring(0, content.length() - 3);
+                    content = content.trim();
+
                     return mapper.readValue(content, Map.class);
                 }
             } catch (Exception e) {

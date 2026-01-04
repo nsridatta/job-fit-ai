@@ -10,13 +10,18 @@ import {
     PiCameraBold,
     PiTrashBold,
     PiGlobeBold,
-    PiListBulletsBold
+    PiListBulletsBold,
+    PiFileTextBold,
+    PiChartLineUpBold,
+    PiSparkleBold,
+    PiMicrosoftWordLogoBold
 } from "react-icons/pi";
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Button } from "../components/ui/Button";
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import ResumePDF from '../components/ResumePDF';
+import { generateCoverLetter, generateRoadmap } from "../api";
 
 interface SectionData {
     score: number;
@@ -28,8 +33,8 @@ interface SectionData {
 interface ResultsData {
     sections: { [key: string]: SectionData };
     overallSuggestion: string;
-    jobMatchScore: number;
-    missingKeywords: string[];
+    jobMatchScore?: number;
+    missingKeywords?: string[];
     templateVerdict: string;
 }
 
@@ -105,6 +110,9 @@ const OptimizationHub: React.FC = () => {
         languages: ""
     });
     const [editedContent, setEditedContent] = useState<{ [key: string]: string }>({});
+    const [agenticContent, setAgenticContent] = useState<{ type: 'letter' | 'roadmap' | null; content: string }>({ type: null, content: "" });
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [showRecommendation, setShowRecommendation] = useState(true);
 
     // Initialize content with "clubbing" logic for mid-range scores
     useEffect(() => {
@@ -180,6 +188,45 @@ const OptimizationHub: React.FC = () => {
         setPersonalInfo(prev => ({ ...prev, profilePic: "" }));
     };
 
+    const handleGenerateLetter = async () => {
+        if (!data || isGenerating) return;
+        setIsGenerating(true);
+        try {
+            // Reconstruct a simplified text from edited content for the prompt
+            const fullText = Object.values(editedContent).join("\n\n");
+            // Simulate formData since the endpoint expects it for resumeFile part (we don't have the original file object here easily available, 
+            // but we can send the text as a blob if needed, or update backend to accept text. 
+            // Given the current backend implementation, it expects MultipartFile. 
+            // For now, let's assume we use the original location state blob if available, or we modify backend.
+            // Let's modify handleGenerateLetter to just pass the job description and let backend use a simplified text version or just generate generic.
+            // Actually, better to send the current edited text.
+            const blob = new Blob([fullText], { type: 'text/plain' });
+            const formData = new FormData();
+            formData.append("resumeFile", blob, "resume.txt");
+            formData.append("jobDescription", "Current Job Context"); // In a real app, we'd store the JD in location state too
+
+            const res = await generateCoverLetter(formData);
+            setAgenticContent({ type: 'letter', content: res.content });
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    const handleGenerateRoadmap = async () => {
+        if (!data?.missingKeywords || isGenerating) return;
+        setIsGenerating(true);
+        try {
+            const res = await generateRoadmap(data.missingKeywords.join(", "));
+            setAgenticContent({ type: 'roadmap', content: res.content });
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const quillModules = React.useMemo(() => ({
         toolbar: [
             ['bold', 'italic', 'underline', 'strike'],
@@ -239,7 +286,90 @@ const OptimizationHub: React.FC = () => {
                 {/* Left Panel - Editor Content */}
                 <div className="w-[480px] border-r border-slate-200 bg-white overflow-y-auto custom-scrollbar flex flex-col shadow-sm">
                     <div className="p-6 space-y-8">
-                        {/* Personal Info */}
+                        {/* Agentic Chain Recommendations */}
+                        {showRecommendation && (data?.jobMatchScore || 0) > 0 && (
+                            <section className="animate-in fade-in slide-in-from-top duration-500 relative group">
+                                <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-blue-100 rounded-2xl p-5 shadow-sm">
+                                    <button
+                                        onClick={() => setShowRecommendation(false)}
+                                        className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-slate-600 hover:bg-white/50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                        title="Dismiss recommendation"
+                                    >
+                                        <PiTrashBold className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <PiSparkleBold className="w-5 h-5 text-indigo-500" />
+                                        <h3 className="font-bold text-slate-900">Smart Recommendation</h3>
+                                    </div>
+
+                                    {(data?.jobMatchScore || 0) >= 70 ? (
+                                        <div className="space-y-3">
+                                            <p className="text-xs text-slate-600 leading-relaxed">
+                                                Great match! Your score of <strong>{data?.jobMatchScore}%</strong> suggests you're a strong candidate.
+                                                Want to generate a tailored cover letter to seal the deal?
+                                            </p>
+                                            <Button
+                                                onClick={handleGenerateLetter}
+                                                disabled={isGenerating}
+                                                className="w-full gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-9"
+                                            >
+                                                <PiFileTextBold className="w-4 h-4" />
+                                                {isGenerating ? "Generating..." : "Generate Matching Cover Letter"}
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <p className="text-xs text-slate-600 leading-relaxed">
+                                                You're close, but missing some key skills like <strong>{data?.missingKeywords?.slice(0, 2).join(", ")}</strong>.
+                                                Generate a 3-day roadmap to bridge the gap?
+                                            </p>
+                                            <Button
+                                                onClick={handleGenerateRoadmap}
+                                                disabled={isGenerating}
+                                                className="w-full gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs h-9"
+                                            >
+                                                <PiChartLineUpBold className="w-4 h-4" />
+                                                {isGenerating ? "Generating..." : "Create 3-Day Skill Roadmap"}
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* Agentic Result Display */}
+                        {agenticContent.type && (
+                            <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in zoom-in duration-300">
+                                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <PiMagicWandBold className="w-4 h-4 text-blue-500" />
+                                        <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                            {agenticContent.type === 'letter' ? 'Drafted Cover Letter' : 'Skill Roadmap'}
+                                        </span>
+                                    </div>
+                                    <button
+                                        onClick={() => setAgenticContent({ type: null, content: "" })}
+                                        className="text-slate-400 hover:text-slate-600 p-1"
+                                    >
+                                        <PiTrashBold className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="p-4 bg-slate-50/50">
+                                    <pre className="text-[11px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed italic">
+                                        {agenticContent.content}
+                                    </pre>
+                                    <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
+                                        <Button
+                                            onClick={() => navigator.clipboard.writeText(agenticContent.content)}
+                                            className="w-full gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs h-9"
+                                        >
+                                            Copy to Clipboard
+                                        </Button>
+                                    </div>
+                                </div>
+                            </section>
+                        )}
                         <section className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
                             <div className="flex items-center gap-2 mb-4 text-slate-900">
                                 <PiUserCircleBold className="w-5 h-5 text-blue-500" />

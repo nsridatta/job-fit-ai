@@ -189,41 +189,44 @@ const Results: React.FC = () => {
               </div>
             </div>
 
-            {/* Optimization Advisor CTA - Only for Partial Matches */}
-            {data.jobMatchScore > 0 && data.jobMatchScore < 55 && (
-              <motion.div
-                variants={itemVariants}
-                className="lg:col-span-3 bg-gradient-to-r from-primary/10 via-violet-50 to-blue-50 rounded-[2rem] p-8 border border-primary/20 shadow-xl relative overflow-hidden group mt-8"
-              >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
+            {/* Optimization Advisor CTA - Available for all to access PDF/Cover Letter features */}
+            <motion.div
+              variants={itemVariants}
+              className="lg:col-span-3 bg-gradient-to-r from-primary/10 via-violet-50 to-blue-50 rounded-[2rem] p-8 border border-primary/20 shadow-xl relative overflow-hidden group mt-8"
+            >
+              <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
 
-                <div className="relative flex flex-col md:flex-row items-center gap-8">
-                  <div className="flex-1 space-y-4 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
-                      <PiMagicWandDuotone className="w-4 h-4" />
-                      Optimizer Available
-                    </div>
-                    <h2 className="text-3xl font-black text-slate-900 leading-tight">
-                      Bridge the Gap to <span className="text-primary italic">95%+ Match</span>
-                    </h2>
-                    <p className="text-slate-600 leading-relaxed max-w-2xl">
-                      Our AI has identified specific skills and phrases that can boost your score instantly.
-                      Use our free Optimizer Hub to generate a perfectly matched, ATS-ready resume in seconds.
-                    </p>
+              <div className="relative flex flex-col md:flex-row items-center gap-8">
+                <div className="flex-1 space-y-4 text-center md:text-left">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
+                    <PiMagicWandDuotone className="w-4 h-4" />
+                    {data.jobMatchScore >= 70 ? "Ready for Application" : "Optimizer Available"}
                   </div>
-                  <div className="shrink-0">
-                    <Button
-                      size="xl"
-                      onClick={() => navigate("/optimizer", { state: data })}
-                      className="bg-primary hover:bg-primary-dark shadow-xl hover:shadow-primary/30 group py-6 px-12"
-                    >
-                      Open Optimizer Hub
-                      <PiTrendUpBold className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  </div>
+                  <h2 className="text-3xl font-black text-slate-900 leading-tight">
+                    {data.jobMatchScore >= 70
+                      ? <>Perfect your Application with <span className="text-primary italic">Live PDF & AI Tools</span></>
+                      : <>Bridge the Gap to <span className="text-primary italic">95%+ Match</span></>
+                    }
+                  </h2>
+                  <p className="text-slate-600 leading-relaxed max-w-2xl">
+                    {data.jobMatchScore >= 70
+                      ? "Your score is great! Use the Hub to generate matching cover letters, add a profile picture, and download your optimized PDF."
+                      : "Our AI has identified specific skills and phrases that can boost your score instantly. Use our free Optimizer Hub to generate a perfectly matched, ATS-ready resume."
+                    }
+                  </p>
                 </div>
-              </motion.div>
-            )}
+                <div className="shrink-0">
+                  <Button
+                    size="xl"
+                    onClick={() => navigate("/optimizer", { state: data })}
+                    className="bg-primary hover:bg-primary-dark shadow-xl hover:shadow-primary/30 group py-6 px-12"
+                  >
+                    {data.jobMatchScore >= 70 ? "Open Resume Hub" : "Open Optimizer Hub"}
+                    <PiTrendUpBold className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
           </motion.section>
 
           {/* Missing Keywords */}
