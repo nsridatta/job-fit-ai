@@ -14,6 +14,7 @@ import {
   PiWarningCircleBold
 } from "react-icons/pi";
 import { Button } from "../components/ui/Button";
+import Header from "../components/Header";
 
 interface SectionData {
   score: number;
@@ -84,38 +85,14 @@ const Results: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-white selection:bg-primary/20 overflow-x-hidden">
+    <div className="min-h-screen w-full bg-white dark:bg-slate-900 selection:bg-primary/20 transition-colors duration-300 overflow-x-hidden">
       {/* Dynamic Background */}
-      <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa]">
-        <div className="bg-blur-blob w-[500px] h-[500px] bg-emerald-100/50 -top-20 -right-20" />
-        <div className="bg-blur-blob w-[400px] h-[400px] bg-blue-100/40 bottom-20 -left-20" />
+      <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa] dark:bg-slate-950">
+        <div className="bg-blur-blob w-[500px] h-[500px] bg-emerald-100/50 dark:bg-emerald-900/10 -top-20 -right-20" />
+        <div className="bg-blur-blob w-[400px] h-[400px] bg-blue-100/40 dark:bg-blue-900/10 bottom-20 -left-20" />
       </div>
 
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => navigate("/dashboard")}
-              className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"
-              aria-label="Go back"
-            >
-              <PiArrowLeftBold className="w-5 h-5 text-slate-700" />
-            </button>
-            <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                <PiMagicWandDuotone className="text-white w-6 h-6" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-slate-900">
-                Analysis Results
-              </span>
-            </div>
-          </div>
-          <Button variant="secondary" size="sm" onClick={() => navigate("/dashboard")}>
-            Analyze Another
-          </Button>
-        </div>
-      </nav>
+      <Header />
 
       <main className="max-w-7xl mx-auto px-6 pt-12 pb-24">
         <motion.div
@@ -127,7 +104,7 @@ const Results: React.FC = () => {
           {/* Hero Score Section */}
           <motion.section variants={itemVariants} className="grid lg:grid-cols-3 gap-8 items-start">
             {/* Main Score Card */}
-            <div className="lg:col-span-1 bg-white rounded-[2rem] p-10 shadow-2xl shadow-slate-200/50 border border-slate-100 text-center relative overflow-hidden">
+            <div className="lg:col-span-1 bg-white dark:bg-slate-800 rounded-[2rem] p-10 shadow-2xl shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-700 text-center relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full -mr-20 -mt-20" />
               <div className="relative">
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Job Match Score</p>
@@ -161,20 +138,20 @@ const Results: React.FC = () => {
             {/* Insights Panel */}
             <div className="lg:col-span-2 space-y-6">
               {/* Overall Suggestion */}
-              <div className="bg-white rounded-3xl p-8 shadow-xl shadow-slate-100/50 border border-slate-100">
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-slate-100/50 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-700">
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-amber-100 rounded-2xl text-amber-600 shrink-0">
+                  <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl text-amber-600 shrink-0">
                     <PiLightbulbDuotone className="w-7 h-7" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 mb-2">Key Recommendation</h3>
-                    <p className="text-slate-600 leading-relaxed">{data.overallSuggestion}</p>
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Key Recommendation</h3>
+                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{data.overallSuggestion}</p>
                   </div>
                 </div>
               </div>
 
               {/* Template Verdict */}
-              <div className={`rounded-3xl p-6 border ${data.templateVerdict.toLowerCase().includes('good') || data.templateVerdict.toLowerCase().includes('ats') ? 'bg-primary/5 border-primary/20' : 'bg-amber-50 border-amber-200'}`}>
+              <div className={`rounded-3xl p-6 border ${data.templateVerdict.toLowerCase().includes('good') || data.templateVerdict.toLowerCase().includes('ats') ? 'bg-primary/5 dark:bg-primary/10 border-primary/20 dark:border-primary/30' : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/50'}`}>
                 <div className="flex items-center gap-4">
                   <div className={`p-3 rounded-2xl ${data.templateVerdict.toLowerCase().includes('good') || data.templateVerdict.toLowerCase().includes('ats') ? 'bg-primary/10 text-primary' : 'bg-amber-100 text-amber-600'}`}>
                     <PiShieldCheckDuotone className="w-6 h-6" />
@@ -192,23 +169,23 @@ const Results: React.FC = () => {
             {/* Optimization Advisor CTA - Available for all to access PDF/Cover Letter features */}
             <motion.div
               variants={itemVariants}
-              className="lg:col-span-3 bg-gradient-to-r from-primary/10 via-violet-50 to-blue-50 rounded-[2rem] p-8 border border-primary/20 shadow-xl relative overflow-hidden group mt-8"
+              className="lg:col-span-3 bg-gradient-to-r from-primary/10 via-violet-50 to-blue-50 dark:from-primary/20 dark:via-violet-900/20 dark:to-blue-900/20 rounded-[2rem] p-8 border border-primary/20 dark:border-primary/30 shadow-xl relative overflow-hidden group mt-8"
             >
               <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
 
               <div className="relative flex flex-col md:flex-row items-center gap-8">
                 <div className="flex-1 space-y-4 text-center md:text-left">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-widest">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 dark:bg-primary/30 text-primary text-xs font-bold uppercase tracking-widest">
                     <PiMagicWandDuotone className="w-4 h-4" />
                     {data.jobMatchScore >= 70 ? "Ready for Application" : "Optimizer Available"}
                   </div>
-                  <h2 className="text-3xl font-black text-slate-900 leading-tight">
+                  <h2 className="text-3xl font-black text-slate-900 dark:text-white leading-tight">
                     {data.jobMatchScore >= 70
                       ? <>Perfect your Application with <span className="text-primary italic">Live PDF & AI Tools</span></>
                       : <>Bridge the Gap to <span className="text-primary italic">95%+ Match</span></>
                     }
                   </h2>
-                  <p className="text-slate-600 leading-relaxed max-w-2xl">
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl">
                     {data.jobMatchScore >= 70
                       ? "Your score is great! Use the Hub to generate matching cover letters, add a profile picture, and download your optimized PDF."
                       : "Our AI has identified specific skills and phrases that can boost your score instantly. Use our free Optimizer Hub to generate a perfectly matched, ATS-ready resume."
@@ -231,12 +208,12 @@ const Results: React.FC = () => {
 
           {/* Missing Keywords */}
           <motion.section variants={itemVariants}>
-            <div className="bg-white rounded-3xl p-8 shadow-xl shadow-slate-100/50 border border-slate-100">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-slate-100/50 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-700">
               <div className="flex items-center gap-3 mb-6">
-                <div className="p-2.5 bg-blue-100 rounded-xl text-blue-600">
+                <div className="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-xl text-blue-600">
                   <PiTagDuotone className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-900">Keywords to Add</h3>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">Keywords to Add</h3>
               </div>
               <div className="flex flex-wrap gap-3">
                 {data.missingKeywords.map((keyword, index) => (
@@ -245,7 +222,7 @@ const Results: React.FC = () => {
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="px-4 py-2 rounded-full text-sm font-semibold bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100 transition-colors cursor-default"
+                    className="px-4 py-2 rounded-full text-sm font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/50 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-default"
                   >
                     + {keyword}
                   </motion.span>
@@ -257,10 +234,10 @@ const Results: React.FC = () => {
           {/* Section Scores Grid */}
           <motion.section variants={itemVariants}>
             <div className="flex items-center gap-3 mb-8">
-              <div className="p-2.5 bg-violet-100 rounded-xl text-violet-600">
+              <div className="p-2.5 bg-violet-100 dark:bg-violet-900/30 rounded-xl text-violet-600">
                 <PiStarDuotone className="w-6 h-6" />
               </div>
-              <h3 className="text-2xl font-bold text-slate-900">Section-by-Section Analysis</h3>
+              <h3 className="text-2xl font-bold text-slate-900 dark:text-white">Section-by-Section Analysis</h3>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -272,10 +249,10 @@ const Results: React.FC = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    className="bg-white rounded-2xl p-6 shadow-lg shadow-slate-100/50 border border-slate-100 hover:shadow-xl transition-shadow"
+                    className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg shadow-slate-100/50 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-700 hover:shadow-xl dark:hover:shadow-slate-950 transition-shadow"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-base font-bold text-slate-900 capitalize">{name.toLowerCase()}</h4>
+                      <h4 className="text-base font-bold text-slate-900 dark:text-white capitalize">{name.toLowerCase()}</h4>
                       <span className={`text-2xl font-black ${getScoreColor(sectionScore)}`}>
                         {sectionData.score}/10
                       </span>
@@ -294,16 +271,16 @@ const Results: React.FC = () => {
 
                     <div className="space-y-3 text-sm">
                       <div>
-                        <p className="font-semibold text-slate-700 flex items-center gap-1.5">
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <PiLightbulbDuotone className="w-4 h-4 text-amber-500" /> Suggestion
                         </p>
-                        <p className="text-slate-500 mt-1 leading-relaxed">{sectionData.suggestion}</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{sectionData.suggestion}</p>
                       </div>
                       <div>
-                        <p className="font-semibold text-slate-700 flex items-center gap-1.5">
+                        <p className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                           <PiCheckCircleFill className="w-4 h-4 text-primary" /> Improved Version
                         </p>
-                        <p className="text-slate-500 mt-1 leading-relaxed">{sectionData.updated}</p>
+                        <p className="text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">{sectionData.updated}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -322,13 +299,13 @@ const Results: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 bg-slate-50/50 py-8 px-6">
+      <footer className="border-t border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 py-8 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <PiMagicWandDuotone className="text-primary w-5 h-5" />
-            <span className="text-lg font-bold text-slate-900">JobFit AI</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">JobFit AI</span>
           </div>
-          <p className="text-xs text-slate-400">© 2026 JobFit AI. Your data is never stored.</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">© 2026 JobFit AI. Your data is never stored.</p>
         </div>
       </footer>
     </div>

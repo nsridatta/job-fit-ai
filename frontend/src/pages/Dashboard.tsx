@@ -23,6 +23,7 @@ import { Button } from "../components/ui/Button";
 import { PiRocketLaunchBold } from "react-icons/pi";
 import { NavigationBlocker } from "../components/NavigationBlocker";
 import { useRef } from "react";
+import Header from "../components/Header";
 
 const Dashboard: React.FC = () => {
   const [resumeFile, setResumeFile] = useState<File | null>(null);
@@ -126,34 +127,16 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white selection:bg-primary/20 selection:text-primary overflow-x-hidden">
+    <div className="min-h-screen w-full bg-white dark:bg-slate-900 selection:bg-primary/20 selection:text-primary transition-colors duration-300 overflow-x-hidden">
       <NavigationBlocker when={isLoading} />
       {/* Dynamic Background */}
-      <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa]">
-        <div className="bg-blur-blob w-[500px] h-[500px] bg-blue-100/40 -top-20 -left-20" />
-        <div className="bg-blur-blob w-[600px] h-[600px] bg-emerald-100/40 -bottom-40 -right-20" />
-        <div className="bg-blur-blob w-[400px] h-[400px] bg-violet-100/30 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+      <div className="fixed inset-0 overflow-hidden -z-10 bg-[#fafafa] dark:bg-slate-950">
+        <div className="bg-blur-blob w-[500px] h-[500px] bg-blue-100/40 dark:bg-blue-900/10 -top-20 -left-20" />
+        <div className="bg-blur-blob w-[600px] h-[600px] bg-emerald-100/40 dark:bg-emerald-900/10 -bottom-40 -right-20" />
+        <div className="bg-blur-blob w-[400px] h-[400px] bg-violet-100/30 dark:bg-violet-900/10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
       </div>
 
-      {/* Modern Navigation */}
-      <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-              <PiMagicWandDuotone className="text-white w-6 h-6" />
-            </div>
-            <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
-              JobFit AI
-            </span>
-          </div>
-          <div className="hidden md:flex items-center gap-8">
-            <Link to="/blog/resume-keywords-2025" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Resume Tips</Link>
-            <Link to="/blog/how-jobfit-ai-works" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">How it works</Link>
-            {/* <Button variant="secondary" size="sm">Sign In</Button>
-            <Button size="sm" className="bg-primary hover:bg-primary-dark">Get Started</Button> */}
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       <main className="max-w-7xl mx-auto px-6 pt-16 pb-32">
         <motion.div
@@ -168,7 +151,7 @@ const Dashboard: React.FC = () => {
               <span className="inline-block px-1 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-widest mb-4">
                 Free ATS Resume Checker for aspiring professionals
               </span>
-              <h1 className="text-6xl md:text-7xl font-extrabold text-slate-900 leading-[1.1] tracking-tight">
+              <h1 className="text-6xl md:text-7xl font-extrabold text-slate-900 dark:text-white leading-[1.1] tracking-tight">
                 Is your resume <br />
                 <span className="text-primary italic">good enough?</span>
               </h1>
@@ -180,13 +163,13 @@ const Dashboard: React.FC = () => {
 
             {/* Input Dashboard Card */}
             <motion.div variants={itemVariants} className="space-y-6">
-              <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-slate-200/50 border border-slate-100 relative overflow-hidden group">
+              <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-950/50 border border-slate-100 dark:border-slate-700 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform" />
 
                 <div className="space-y-8 relative">
                   {/* File Upload Area */}
                   <div className="space-y-3">
-                    <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                    <label className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <PiCloudArrowUpDuotone className="text-primary w-5 h-5" />
                       Step 1: Upload CV
                     </label>
@@ -200,12 +183,12 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Job Area */}
-                  <div className="space-y-3 pt-4 border-t border-slate-50">
-                    <label className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <div className="space-y-3 pt-4 border-t border-slate-50 dark:border-slate-700">
+                    <label className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                       <PiNotePencilDuotone className="text-indigo-500 w-5 h-5" />
                       Step 2: Paste Job Description
                     </label>
-                    <div className="bg-slate-50 rounded-2xl border border-slate-200 focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
+                    <div className="bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 focus-within:ring-2 focus-within:ring-primary/20 transition-all overflow-hidden">
                       <JobDescriptionInput onInputChange={setJobDescription} />
                     </div>
                   </div>
@@ -233,9 +216,9 @@ const Dashboard: React.FC = () => {
 
           {/* Right Section: Visual Preview */}
           <motion.div variants={itemVariants} className="hidden lg:block relative">
-            <div className="absolute -inset-10 bg-gradient-to-tr from-primary/10 via-violet-100 to-blue-100 rounded-full blur-3xl opacity-60 animate-pulse" />
-            <div className="relative bg-white rounded-[2.5rem] shadow-3xl shadow-slate-200 border border-slate-100 overflow-hidden transform group rotate-2 hover:rotate-0 transition-all duration-700">
-              <div className="h-12 bg-slate-50/80 border-b border-slate-100 flex items-center px-6 gap-2">
+            <div className="absolute -inset-10 bg-gradient-to-tr from-primary/10 via-violet-100 to-blue-100 dark:from-primary/20 dark:via-violet-900/20 dark:to-blue-900/20 rounded-full blur-3xl opacity-60 animate-pulse" />
+            <div className="relative bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-3xl shadow-slate-200 dark:shadow-slate-950 border border-slate-100 dark:border-slate-700 overflow-hidden transform group rotate-2 hover:rotate-0 transition-all duration-700">
+              <div className="h-12 bg-slate-50/80 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-700 flex items-center px-6 gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-400/50" />
                 <div className="w-3 h-3 rounded-full bg-amber-400/50" />
                 <div className="w-3 h-3 rounded-full bg-emerald-400/50" />
@@ -244,8 +227,8 @@ const Dashboard: React.FC = () => {
               <div className="p-10 space-y-8">
                 <div className="flex justify-between items-center">
                   <div className="space-y-2">
-                    <div className="w-32 h-4 bg-slate-100 rounded-full" />
-                    <div className="w-48 h-8 bg-slate-900/5 rounded-2xl" />
+                    <div className="w-32 h-4 bg-slate-100 dark:bg-slate-700 rounded-full" />
+                    <div className="w-48 h-8 bg-slate-900/5 dark:bg-white/5 rounded-2xl" />
                   </div>
                   <div className="w-20 h-20 rounded-full border-4 border-primary border-t-transparent animate-spin duration-3000 flex items-center justify-center">
                     <span className="text-xl font-black text-primary">85%</span>
@@ -254,13 +237,13 @@ const Dashboard: React.FC = () => {
 
                 <div className="space-y-4">
                   {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="flex gap-4 items-center p-4 rounded-2xl bg-slate-50/50 border border-slate-100">
+                    <div key={i} className="flex gap-4 items-center p-4 rounded-2xl bg-slate-50/50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
                       <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${i === 1 ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
                         {i === 1 ? <PiCheckCircleFill /> : <PiNotePencilDuotone />}
                       </div>
                       <div className="flex-1 space-y-2">
-                        <div className="w-3/4 h-3 bg-slate-200 rounded-full" />
-                        <div className="w-1/2 h-2 bg-slate-100 rounded-full" />
+                        <div className="w-3/4 h-3 bg-slate-200 dark:bg-slate-700 rounded-full" />
+                        <div className="w-1/2 h-2 bg-slate-100 dark:bg-slate-800 rounded-full" />
                       </div>
                     </div>
                   ))}
@@ -268,13 +251,13 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Floating Badge */}
-              <div className="absolute bottom-10 -left-10 bg-white p-4 rounded-2xl shadow-2xl border border-slate-100 flex items-center gap-3 animate-float">
-                <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center text-amber-600">
+              <div className="absolute bottom-10 -left-10 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-2xl border border-slate-100 dark:border-slate-700 flex items-center gap-3 animate-float">
+                <div className="w-10 h-10 bg-amber-100 dark:bg-amber-900/30 rounded-xl flex items-center justify-center text-amber-600">
                   <PiScrollDuotone className="w-6 h-6" />
                 </div>
                 <div className="pr-4">
-                  <p className="text-xs font-bold text-slate-900">ATS Compatible</p>
-                  <p className="text-[10px] text-slate-500 text-nowrap">Industry Standard format</p>
+                  <p className="text-xs font-bold text-slate-900 dark:text-white">ATS Compatible</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 text-nowrap">Industry Standard format</p>
                 </div>
               </div>
             </div>
@@ -300,25 +283,25 @@ const Dashboard: React.FC = () => {
               icon: <PiShieldCheckDuotone className="w-8 h-8 text-emerald-500" />
             }
           ].map((feature, i) => (
-            <div key={i} className="space-y-4 p-8 rounded-3xl hover:bg-white hover:shadow-xl transition-all border border-transparent hover:border-slate-100">
-              <div className="bg-white inline-block p-4 rounded-2xl shadow-sm">
+            <div key={i} className="space-y-4 p-8 rounded-3xl hover:bg-white dark:hover:bg-slate-800 hover:shadow-xl dark:hover:shadow-slate-950 transition-all border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
+              <div className="bg-white dark:bg-slate-800 inline-block p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-slate-900">{feature.title}</h3>
-              <p className="text-slate-500 leading-relaxed text-sm">{feature.desc}</p>
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">{feature.title}</h3>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-sm">{feature.desc}</p>
             </div>
           ))}
         </motion.section>
       </main>
 
       {/* Modern Simple Footer */}
-      <footer className="border-t border-gray-100 bg-slate-50/50 py-12 px-6">
+      <footer className="border-t border-gray-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8">
           <div className="flex items-center gap-2">
             <PiMagicWandDuotone className="text-primary w-5 h-5 transition-all" />
-            <span className="text-lg font-bold text-slate-900">JobFit AI</span>
+            <span className="text-lg font-bold text-slate-900 dark:text-white">JobFit AI</span>
           </div>
-          <div className="flex gap-10 text-sm font-medium text-slate-500">
+          <div className="flex gap-10 text-sm font-medium text-slate-500 dark:text-slate-400">
             <Link to="/privacy" className="hover:text-primary">Privacy</Link>
             <Link to="/terms" className="hover:text-primary">Terms</Link>
             <Link to="/blog" className="hover:text-primary">Blog</Link>

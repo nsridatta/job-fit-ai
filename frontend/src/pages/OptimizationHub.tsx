@@ -19,6 +19,7 @@ import {
 import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import { Button } from "../components/ui/Button";
+import { ColorModeButton } from "../components/ui/color-mode";
 import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 import ResumePDF from '../components/ResumePDF';
 import { generateCoverLetter, generateRoadmap } from "../api";
@@ -54,7 +55,7 @@ const SectionEditor: React.FC<{
                 <div className="flex items-center gap-2">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{name}</span>
                     {score && (
-                        <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                        <span className="text-[10px] bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full font-bold">
                             {score}/10
                         </span>
                     )}
@@ -67,7 +68,7 @@ const SectionEditor: React.FC<{
                     Apply AI
                 </button>
             </div>
-            <div className="rounded-xl border border-slate-200 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
+            <div className="rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-white dark:bg-slate-800 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
                 <ReactQuill
                     theme="snow"
                     value={content}
@@ -82,9 +83,9 @@ const SectionEditor: React.FC<{
                 />
             </div>
             {suggestion && (
-                <div className="flex gap-2 items-start p-3 bg-slate-50 rounded-xl">
+                <div className="flex gap-2 items-start p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                     <PiInfoBold className="w-3 h-3 text-slate-400 mt-1" />
-                    <p className="text-[11px] text-slate-500 leading-normal italic">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-normal italic">
                         {suggestion}
                     </p>
                 </div>
@@ -252,20 +253,22 @@ const OptimizationHub: React.FC = () => {
     // Removed problematic global quillRef
 
     return (
-        <div className="min-h-screen bg-[#fafafa] flex flex-col h-screen overflow-hidden">
+        <div className="min-h-screen bg-[#fafafa] dark:bg-slate-950 flex flex-col h-screen overflow-hidden transition-colors duration-300">
             {/* Header */}
-            <header className="h-16 bg-white border-b border-slate-200 px-6 flex items-center justify-between z-30 shrink-0">
+            <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-6 flex items-center justify-between z-30 shrink-0">
                 <div className="flex items-center gap-4">
-                    <button onClick={() => navigate("/dashboard")} className="p-2 hover:bg-slate-100 rounded-lg transition-colors text-slate-500">
+                    <button onClick={() => navigate("/dashboard")} className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-500">
                         <PiArrowLeftBold className="w-5 h-5" />
                     </button>
                     <div>
-                        <h1 className="font-bold text-slate-900">Resume Optimizer Hub</h1>
-                        <p className="text-xs text-slate-500 italic">Live PDF Preview & High-Score Editor</p>
+                        <h1 className="font-bold text-slate-900 dark:text-white">Resume Optimizer Hub</h1>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 italic">Live PDF Preview & High-Score Editor</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
+                    <ColorModeButton />
+                    <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
                     <PDFDownloadLink
                         document={<ResumePDF personalInfo={personalInfo} editedContent={editedContent} />}
                         fileName={`${personalInfo.name.replace(/\s+/g, '_') || 'Resume'}_Optimized.pdf`}
@@ -284,7 +287,7 @@ const OptimizationHub: React.FC = () => {
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Left Panel - Editor Content */}
-                <div className="w-[480px] border-r border-slate-200 bg-white overflow-y-auto custom-scrollbar flex flex-col shadow-sm">
+                <div className="w-[480px] border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-y-auto custom-scrollbar flex flex-col shadow-sm">
                     <div className="p-6 space-y-8">
                         {/* Agentic Chain Recommendations */}
                         {showRecommendation && (data?.jobMatchScore || 0) > 0 && (
@@ -340,11 +343,11 @@ const OptimizationHub: React.FC = () => {
 
                         {/* Agentic Result Display */}
                         {agenticContent.type && (
-                            <section className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm animate-in zoom-in duration-300">
-                                <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+                            <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl overflow-hidden shadow-sm animate-in zoom-in duration-300">
+                                <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <PiMagicWandBold className="w-4 h-4 text-blue-500" />
-                                        <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                                        <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                                             {agenticContent.type === 'letter' ? 'Drafted Cover Letter' : 'Skill Roadmap'}
                                         </span>
                                     </div>
@@ -355,11 +358,11 @@ const OptimizationHub: React.FC = () => {
                                         <PiTrashBold className="w-4 h-4" />
                                     </button>
                                 </div>
-                                <div className="p-4 bg-slate-50/50">
-                                    <pre className="text-[11px] text-slate-700 whitespace-pre-wrap font-sans leading-relaxed italic">
+                                <div className="p-4 bg-slate-50/50 dark:bg-slate-900/50">
+                                    <pre className="text-[11px] text-slate-700 dark:text-slate-300 whitespace-pre-wrap font-sans leading-relaxed italic">
                                         {agenticContent.content}
                                     </pre>
-                                    <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end">
+                                    <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
                                         <Button
                                             onClick={() => navigator.clipboard.writeText(agenticContent.content)}
                                             className="w-full gap-2 bg-slate-900 hover:bg-slate-800 text-white text-xs h-9"
@@ -370,8 +373,8 @@ const OptimizationHub: React.FC = () => {
                                 </div>
                             </section>
                         )}
-                        <section className="bg-slate-50 p-5 rounded-2xl border border-slate-100">
-                            <div className="flex items-center gap-2 mb-4 text-slate-900">
+                        <section className="bg-slate-50 dark:bg-slate-900/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800">
+                            <div className="flex items-center gap-2 mb-4 text-slate-900 dark:text-white">
                                 <PiUserCircleBold className="w-5 h-5 text-blue-500" />
                                 <h3 className="font-bold">Contact Details</h3>
                             </div>
@@ -379,12 +382,12 @@ const OptimizationHub: React.FC = () => {
                             {/* Profile Pic Upload */}
                             <div className="mb-8 flex flex-col items-center gap-4">
                                 <div className="relative group">
-                                    <div className="w-28 h-28 rounded-full border-2 border-dashed border-slate-200 bg-white flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:border-blue-400 group-hover:bg-blue-50/30 group-hover:shadow-xl group-hover:shadow-blue-500/10">
+                                    <div className="w-28 h-28 rounded-full border-2 border-dashed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:border-blue-400 dark:group-hover:border-blue-500 group-hover:bg-blue-50/30 dark:group-hover:bg-blue-900/10 group-hover:shadow-xl group-hover:shadow-blue-500/10">
                                         {personalInfo.profilePic ? (
                                             <img src={personalInfo.profilePic} alt="Profile" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
                                         ) : (
                                             <div className="flex flex-col items-center gap-2">
-                                                <PiCameraBold className="w-8 h-8 text-slate-300 group-hover:text-blue-500 transition-colors" />
+                                                <PiCameraBold className="w-8 h-8 text-slate-300 dark:text-slate-600 group-hover:text-blue-500 transition-colors" />
                                             </div>
                                         )}
                                     </div>
@@ -392,7 +395,7 @@ const OptimizationHub: React.FC = () => {
                                     {personalInfo.profilePic ? (
                                         <button
                                             onClick={handleRemoveImage}
-                                            className="absolute -top-1 -right-1 p-2 bg-white text-red-500 rounded-full shadow-lg hover:bg-red-50 transition-all hover:scale-110 z-10 border border-slate-100"
+                                            className="absolute -top-1 -right-1 p-2 bg-white dark:bg-slate-800 text-red-500 rounded-full shadow-lg hover:bg-red-50 dark:hover:bg-red-900/30 transition-all hover:scale-110 z-10 border border-slate-100 dark:border-slate-700"
                                             title="Remove image"
                                         >
                                             <PiTrashBold className="w-4 h-4" />
@@ -409,7 +412,7 @@ const OptimizationHub: React.FC = () => {
                                 {!personalInfo.profilePic && (
                                     <div className="text-center">
                                         <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Profile Photo</span>
-                                        <p className="text-[9px] text-slate-400 italic">Recommended: Square image</p>
+                                        <p className="text-[9px] text-slate-400 dark:text-slate-500 italic">Recommended: Square image</p>
                                     </div>
                                 )}
                             </div>
@@ -419,14 +422,14 @@ const OptimizationHub: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Full Name"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.name}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, name: e.target.value })}
                                     />
                                     <input
                                         type="text"
                                         placeholder="Professional Title"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.title}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, title: e.target.value })}
                                     />
@@ -435,14 +438,14 @@ const OptimizationHub: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Email"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.email}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, email: e.target.value })}
                                     />
                                     <input
                                         type="text"
                                         placeholder="Phone"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.phone}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, phone: e.target.value })}
                                     />
@@ -451,14 +454,14 @@ const OptimizationHub: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="LinkedIn URL"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.linkedin}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, linkedin: e.target.value })}
                                     />
                                     <input
                                         type="text"
                                         placeholder="GitHub URL"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.github}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, github: e.target.value })}
                                     />
@@ -467,7 +470,7 @@ const OptimizationHub: React.FC = () => {
                                     <input
                                         type="text"
                                         placeholder="Location (City, Country)"
-                                        className="w-full p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                        className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                         value={personalInfo.location}
                                         onChange={(e) => setPersonalInfo({ ...personalInfo, location: e.target.value })}
                                     />
@@ -476,7 +479,7 @@ const OptimizationHub: React.FC = () => {
                                         <input
                                             type="text"
                                             placeholder="Languages"
-                                            className="w-full pl-9 p-2.5 rounded-xl border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none"
+                                            className="w-full pl-9 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm focus:ring-2 focus:ring-blue-500/20 outline-none dark:text-white"
                                             value={personalInfo.languages}
                                             onChange={(e) => setPersonalInfo({ ...personalInfo, languages: e.target.value })}
                                         />
@@ -487,7 +490,7 @@ const OptimizationHub: React.FC = () => {
 
                         {/* Resume Sections */}
                         <section className="space-y-6">
-                            <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-2">
+                            <div className="flex items-center gap-2 text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">
                                 <PiMagicWandBold className="w-5 h-5 text-purple-500" />
                                 <h3 className="font-bold">Content Editor</h3>
                             </div>
@@ -510,13 +513,13 @@ const OptimizationHub: React.FC = () => {
                 </div>
 
                 {/* Right Panel - Live Preview */}
-                <div className="flex-1 bg-slate-100 p-8 flex flex-col items-center justify-center overflow-hidden relative">
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-slate-900/80 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
+                <div className="flex-1 bg-slate-100 dark:bg-slate-950 p-8 flex flex-col items-center justify-center overflow-hidden relative">
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 bg-slate-900/80 dark:bg-slate-800/80 backdrop-blur-md px-4 py-1.5 rounded-full flex items-center gap-2 shadow-lg">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                         <span className="text-[10px] font-bold text-white uppercase tracking-widest">Real-time Preview</span>
                     </div>
 
-                    <div className="w-full h-full max-w-4xl bg-white shadow-2xl rounded-2xl overflow-hidden border border-white">
+                    <div className="w-full h-full max-w-4xl bg-white dark:bg-slate-900 shadow-2xl rounded-2xl overflow-hidden border border-white dark:border-slate-800">
                         <PDFViewer width="100%" height="100%" showToolbar={false} className="border-none">
                             <ResumePDF personalInfo={personalInfo} editedContent={editedContent} />
                         </PDFViewer>
